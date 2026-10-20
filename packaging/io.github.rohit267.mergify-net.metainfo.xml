@@ -5,8 +5,8 @@
   <summary>Use all your internet connections at the same time</summary>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>MIT</project_license>
-  <developer id="io.github.rohit267">
-    <name>Rohit Mahto</name>
+  <developer id="io.github.ysaiahdh">
+    <name>Ysaïah Dhellemmes Hounkanlin</name>
   </developer>
   <description>
     <p>
@@ -38,13 +38,12 @@
     <keyword>wifi</keyword>
     <keyword>load balancing</keyword>
   </keywords>
-  <url type="homepage">https://github.com/rohit267/mergify-net</url>
-  <url type="bugtracker">https://github.com/rohit267/mergify-net/issues</url>
-  <url type="donation">https://buymeacoffee.com/rohit267</url>
+  <url type="homepage">https://github.com/ysaiahdh/net-merge</url>
+  <url type="bugtracker">https://github.com/ysaiahdh/net-merge/issues</url>
   <screenshots>
     <screenshot type="default">
       <caption>The tray menu shows each connection's speed and how many connections it carries</caption>
-      <image>https://raw.githubusercontent.com/rohit267/mergify-net/main/docs/tray-menu.png</image>
+      <image>https://raw.githubusercontent.com/ysaiahdh/net-merge/main/docs/tray-menu.png</image>
     </screenshot>
   </screenshots>
   <content_rating type="oars-1.1"/>

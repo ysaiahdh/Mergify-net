@@ -5,9 +5,9 @@ platform: linux
 version: ${VERSION}
 section: net
 priority: optional
-maintainer: Rohit Mahto <rohit@champdev.me>
-vendor: Rohit Mahto
-homepage: https://github.com/rohit267/mergify-net
+maintainer: Ysaïah Dhellemmes Hounkanlin <ysaiah.ayzter@yahoo.com>
+vendor: Ysaïah Dhellemmes Hounkanlin
+homepage: https://github.com/ysaiahdh/net-merge
 license: MIT
 description: |
   Use all your network adapters at once.
