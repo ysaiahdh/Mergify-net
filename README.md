@@ -179,19 +179,117 @@ opening several connections uses **Wi-Fi and mobile data (4G/5G) at once**.
 - **Both links stay yours.** Nothing is hijacked system-wide: only traffic entering the tunnel is
   balanced.
 
-Build it from source (Android Studio, or Gradle on the command line):
+Pour compiler l'app, voir la procédure complète : [Compiler la version mobile (Android)](#compiler-la-version-mobile-android)
+(gomobile → `mergify.aar`, puis Gradle → APK, et installation via `adb`).
 
+## Compiler la version mobile (Android)
+
+La version Android se compose de deux artefacts, à compiler dans cet ordre :
+
+1. **`android/app/libs/mergify.aar`** — le moteur Go (le même que sur desktop) compilé en
+   bibliothèque native pour Android via gomobile ;
+2. **l'APK** de l'application Kotlin (`VpnService` + interface Jetpack Compose), produite par Gradle
+   dans le dossier `android/` et qui embarque le `.aar`.
+
+> Le `.aar` est versionné dans le dépôt : à régénérer après **chaque** modification du moteur Go
+> (`internal/…`, `pkg/mobile/…`), sinon l'APK continue d'embarquer l'ancienne version.
+
+### 1. Prérequis
+
+| Outil | Version | Rôle |
+|---|---|---|
+| [Go](https://go.dev/dl/) | **1.24+** (directive `tool` du `go.mod` ; le dépôt vise actuellement Go 1.27) | compilation du moteur et des outils |
+| [Android Studio](https://developer.android.com/studio) | récent | SDK Android, JDK embarqué (`jbr`), `adb` |
+| `ANDROID_HOME` | pointant vers le SDK (`C:\android-sdk`, `~/Android/Sdk`…) | détecté par Gradle **et** gomobile |
+| `gomobile` / `gobind` | `golang.org/x/mobile` (dernière version) | binding Go → classes Java/Kotlin |
+
+Installer les outils Go (une seule fois), à la racine du dépôt :
+
+```bash
+# enregistre gobind comme outil du module (directive `tool` du go.mod)
+go get -tool golang.org/x/mobile/cmd/gobind
+go mod tidy
+
+# le pilote gomobile et gobind sur le PATH (ce sont eux que les commandes suivantes appellent)
+go install golang.org/x/mobile/cmd/gomobile@latest
+go install golang.org/x/mobile/cmd/gobind@latest
 ```
+
+> **Windows** : `gomobile bind` appelle `javac`. Ajoutez le JDK d'Android Studio au `PATH`
+> (`%ProgramFiles%\Android\Android Studio\jbr\bin`) ou exportez `JAVA_HOME` vers ce JDK avant la
+> commande. Côté Gradle, utilisez un **JDK 17 à 21** (*Settings → Build Tools → Gradle → Gradle JDK*) :
+> les JBR les plus récents (24+) sont trop jeunes pour le Gradle 8.9 du projet.
+
+### 2. Générer la bibliothèque Go (`mergify.aar`)
+
+À la racine du dépôt (macOS/Linux) :
+
+```bash
+gomobile bind \
+  -target=android/arm64 \
+  -androidapi 29 \
+  -javapkg mergifynet \
+  -o android/app/libs/mergify.aar \
+  ./pkg/mobile
+```
+
+Sous Windows PowerShell, la même commande sur une ligne :
+
+```powershell
+gomobile bind -target=android/arm64 -androidapi 29 -javapkg mergifynet -o android\app\libs\mergify.aar .\pkg\mobile
+```
+
+| Option | Signification |
+|---|---|
+| `-target=android/arm64` | ABI cible : le S25 est en arm64-v8a. Sans ABI (`-target=android`), le `.aar` devient multi-ABI (arm, arm64, amd64…). |
+| `-androidapi 29` | API Android minimale, en cohérence avec `minSdk = 29` du Gradle. |
+| `-javapkg mergifynet` | package Java généré. gobind y append le nom du package Go : les classes atterrissent dans **`mergifynet.mobile`** (`mergifynet.mobile.Mobile`), c'est ce que les imports Kotlin utilisent. |
+| `-o …/mergify.aar` | fichier produit ; Gradle inclut automatiquement tout `.aar` présent dans `android/app/libs/`. |
+| `./pkg/mobile` | package Go exposé à Android ; seuls des types compatibles gobind y sont exportés (règle 2 de [`AGENTS.md`](AGENTS.md)). |
+
+### 3. Compiler l'APK Android
+
+```bash
 cd android
-./gradlew assembleDebug        # app/build/outputs/apk/debug/app-debug.apk
-adb install -r app/build/outputs/apk/debug/app-debug.apk
+./gradlew assembleDebug      # Windows : .\gradlew.bat assembleDebug
 ```
 
-The Go engine is embedded as `android/app/libs/mergify.aar`, regenerated with:
+- L'APK est produite dans `android/app/build/outputs/apk/debug/app-debug.apk` (signature de debug,
+  suffisante pour un appareil de test).
+- Le wrapper Gradle 8.9 est versionné (`gradlew`, `gradle/wrapper/`) : aucune installation Gradle
+  globale n'est nécessaire.
+- `android/gradle.properties` contient `android.overridePathCheck=true`, requis car le chemin du
+  dépôt contient des accents (AGP refuse ce type de chemin sans ce réglage).
+- Première exécution : Gradle télécharge ses dépendances (quelques minutes).
 
-```
-gomobile bind -target=android/arm64 -androidapi 29 -javapkg mergifynet -o android/app/libs/mergify.aar ./pkg/mobile
-```
+### 4. Installer et lancer sur l'appareil (Galaxy S25)
+
+1. Sur le S25 : *Paramètres → À propos du téléphone → Informations sur le logiciel* — tapez 7 fois sur
+   *Numéro de build* pour activer les **options pour les développeurs**, puis activez **Débogage USB**.
+2. Branchez le téléphone, acceptez la clé de débogage, et vérifiez la présence de l'appareil :
+
+   ```bash
+   adb devices        # le S25 doit apparaître en état "device" (ex. RFCY410YYEA    device)
+   ```
+
+3. Installer (ou mettre à jour) l'app :
+
+   ```bash
+   adb install -r android/app/build/outputs/apk/debug/app-debug.apk
+   ```
+
+4. Premier lancement : le dialogue de consentement système **VpnService** s'affiche ; une fois accepté,
+   la clé VPN apparaît dans la barre d'état. L'app tourne en service au premier plan
+   (`foregroundServiceType="systemExempted"` — le SDK Android ne définit **aucun** type `vpn`).
+5. Suivre le démarrage du moteur Go (handles réseau Wi-Fi/cellulaire, sondes de latence, erreurs
+   éventuelles de `bindSocket`) :
+
+   ```bash
+   adb logcat -s MergifyNet
+   ```
+
+L'identifiant de l'application est `com.mergify.net` ; pour la retirer de l'appareil :
+`adb uninstall com.mergify.net`.
 
 ## Uninstall
 
