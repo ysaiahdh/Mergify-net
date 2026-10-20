@@ -19,6 +19,7 @@
   <a href="https://github.com/rohit267/mergify-net/releases/latest">Télécharger</a> ·
   <a href="#installer">Installer</a> ·
   <a href="#android">Android</a> ·
+  <a href="#performance">Performance</a> ·
   <a href="#ajouter-une-deuxième-connexion">Ajouter une deuxième connexion</a> ·
   <a href="#dépannage">Dépannage</a> ·
   <a href="docs/DEVELOPING.md">Fonctionnement</a>
@@ -183,6 +184,31 @@ l'intérieur d'un VPN local (**VpnService**). Chaque socket sortant est protég�
 sorte qu'une application ouvrant plusieurs connexions utilise **le Wi-Fi et les données mobiles (4G/5G) en
 même temps**.
 
+<table align="center">
+  <tr>
+    <td align="center" width="33%">
+      <a href="docs/screenshots/android-dashboard-idle.jpg"><img src="docs/screenshots/android-dashboard-idle.jpg" width="240" alt="Tableau de bord Android, tunnel inactif : bouton Activer le VPN et carte de consommation (session, cumulé, répartition Wi-Fi / mobile)"></a>
+    </td>
+    <td align="center" width="33%">
+      <a href="docs/screenshots/android-dashboard-active.jpg"><img src="docs/screenshots/android-dashboard-active.jpg" width="240" alt="Tableau de bord Android en cours de fusion : statut Tunnel actif, bouton VPN actif, cartes wifi et cell avec flux, débit, latence et adresses IP"></a>
+    </td>
+    <td align="center" width="33%">
+      <a href="docs/screenshots/android-settings.jpg"><img src="docs/screenshots/android-settings.jpg" width="240" alt="Écran Paramètres Android : seuil de données mobiles de 100 Mo à 20 Go avec interrupteur Illimité, et interrupteur pour forcer le multi-flux"></a>
+    </td>
+  </tr>
+  <tr>
+    <td align="center"><sub><b>Tableau de bord</b> — tunnel inactif, consommation de la session et cumulée, répartie Wi-Fi / mobile.</sub></td>
+    <td align="center"><sub><b>Fusion en cours</b> — Wi-Fi + 4G/5G, flux et latence par lien, adresses IPv4/IPv6.</sub></td>
+    <td align="center"><sub><b>Paramètres</b> — seuil de données mobiles (100 Mo → 20 Go ou illimité) et multi-flux.</sub></td>
+  </tr>
+</table>
+
+<p align="center">
+  <a href="docs/screenshots/android-notification.jpg"><img src="docs/screenshots/android-notification.jpg" width="460" alt="Notification permanente Android : Mergify-Net connecté en Wi-Fi, 85 ko/s en réception et 15 ko/s en émission, ping 20 ms, avec l'action Déconnecter"></a>
+  <br>
+  <sub><b>La notification permanente</b> indique le lien utilisé, le débit et le ping en direct, et permet de déconnecter le tunnel.</sub>
+</p>
+
 - **Aucun root.** Le VPN vit entièrement dans l'application et aucun trafic ne passe par un serveur ;
   Android affiche l'icône de clé VPN habituelle pendant son fonctionnement.
 - **Routage intelligent.** Le lien à plus faible latence est prioritaire et porte chaque nouveau flux ;
@@ -191,6 +217,8 @@ même temps**.
   faible.
 - **Vos deux liens restent les vôtres.** Rien n'est détourné à l'échelle du système : seul le trafic entrant
   dans le tunnel est réparti.
+- **Notification permanente.** Le service de premier plan maintient une notification indiquant le lien
+  utilisé, le débit et le ping en direct, avec une action *Déconnecter*.
 - **Consommation de données.** Le tableau de bord indique le volume transporté par le tunnel pour la session
   et en cumulé, réparti entre Wi-Fi et données mobiles (4G/5G), à partir des compteurs d'octets par interface
   du moteur.
@@ -202,6 +230,20 @@ même temps**.
 
 Pour compiler l'app, voir la procédure complète : [Compiler la version mobile (Android)](#compiler-la-version-mobile-android)
 (gomobile → `mergify.aar`, puis Gradle → APK, et installation via `adb`).
+
+## Performance
+
+Mesuré sur le Galaxy S25, tunnel actif :
+
+<p align="center">
+  <a href="docs/screenshots/performance-speedtest.jpg"><img src="docs/screenshots/performance-speedtest.jpg" width="300" alt="Résultat Speedtest avec le tunnel actif : 536 Mbit/s en réception et 947 Mbit/s en émission"></a>
+  <br>
+  <sub><b>Speedtest, tunnel actif</b> — 536 Mbit/s en réception et 947 Mbit/s en émission sur Wi-Fi + 4G/5G.</sub>
+</p>
+
+Le score suit vos liens : il correspond à ce qu'ils peuvent transporter ensemble à cet instant. Speedtest
+ouvre plusieurs connexions, il profite donc des deux ; un téléchargement unique reste sur un seul lien,
+comme expliqué plus haut.
 
 ## Compiler la version mobile (Android)
 
@@ -290,7 +332,7 @@ cd android
 2. Branchez le téléphone, acceptez la clé de débogage, et vérifiez la présence de l'appareil :
 
    ```bash
-   adb devices        # le S25 doit apparaître en état "device" (ex. RFCY410YYEA    device)
+   adb devices        # le S25 doit apparaître en état "device" (ex. R58M1234ABC    device)
    ```
 
 3. Installer (ou mettre à jour) l'app :

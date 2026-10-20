@@ -5,7 +5,7 @@ platform: linux
 version: ${VERSION}
 section: net
 priority: optional
-maintainer: Ysaïah Dhellemmes Hounkanlin <ysaiah.ayzter@yahoo.com>
+maintainer: Ysaïah Dhellemmes Hounkanlin <206241240+ysaiahdh@users.noreply.github.com>
 vendor: Ysaïah Dhellemmes Hounkanlin
 homepage: https://github.com/ysaiahdh/net-merge
 license: MIT

@@ -3,3 +3,6 @@ wintun.dll
 dist/
 result
 *.syso
+
+# Local scratch folder (raw screenshots, notes) - not part of the project
+OpenCode/

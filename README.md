@@ -19,6 +19,7 @@
   <a href="https://github.com/rohit267/mergify-net/releases/latest">Download</a> ·
   <a href="#install">Install</a> ·
   <a href="#android">Android</a> ·
+  <a href="#performance">Performance</a> ·
   <a href="#add-a-second-connection">Add a second connection</a> ·
   <a href="#troubleshooting">Troubleshooting</a> ·
   <a href="docs/DEVELOPING.md">How it works</a>
@@ -176,6 +177,31 @@ compiled to a native library with [gomobile](https://pkg.go.dev/golang.org/x/mob
 VPN (**VpnService**). Every outgoing socket is protected and pinned to the right network, so an app
 opening several connections uses **Wi-Fi and mobile data (4G/5G) at once**.
 
+<table align="center">
+  <tr>
+    <td align="center" width="33%">
+      <a href="docs/screenshots/android-dashboard-idle.jpg"><img src="docs/screenshots/android-dashboard-idle.jpg" width="240" alt="Android dashboard with the tunnel off: Activer le VPN button and data usage card (session, cumulative, Wi-Fi / mobile split)"></a>
+    </td>
+    <td align="center" width="33%">
+      <a href="docs/screenshots/android-dashboard-active.jpg"><img src="docs/screenshots/android-dashboard-active.jpg" width="240" alt="Android dashboard while merging: green Tunnel actif status, VPN actif button, wifi and cell cards with flows, throughput, latency and IP addresses"></a>
+    </td>
+    <td align="center" width="33%">
+      <a href="docs/screenshots/android-settings.jpg"><img src="docs/screenshots/android-settings.jpg" width="240" alt="Android settings screen: mobile data budget from 100 Mo to 20 Go with an Illimité switch, and the force multi-flow switch"></a>
+    </td>
+  </tr>
+  <tr>
+    <td align="center"><sub><b>Dashboard</b> — tunnel off, session and cumulative data usage, split between Wi-Fi and mobile.</sub></td>
+    <td align="center"><sub><b>Merging</b> — Wi-Fi + 4G/5G, flows and latency per link, IPv4/IPv6 addresses.</sub></td>
+    <td align="center"><sub><b>Settings</b> — mobile data budget (100 Mo → 20 Go or unlimited) and multi-flow.</sub></td>
+  </tr>
+</table>
+
+<p align="center">
+  <a href="docs/screenshots/android-notification.jpg"><img src="docs/screenshots/android-notification.jpg" width="460" alt="Ongoing Android notification: Mergify-Net connected over Wi-Fi, 85 ko/s down and 15 ko/s up, 20 ms ping, with a Disconnect action"></a>
+  <br>
+  <sub><b>The ongoing notification</b> shows the link in use, live throughput and ping, and can disconnect the tunnel.</sub>
+</p>
+
 - **No root.** The VPN lives entirely in the app and no traffic goes through a server; Android shows
   the usual VPN key icon while it runs.
 - **Smart routing.** The lowest-latency link is the primary and carries every new flow; the other one
@@ -183,6 +209,8 @@ opening several connections uses **Wi-Fi and mobile data (4G/5G) at once**.
   get the best of both without being dragged down by the weaker link.
 - **Both links stay yours.** Nothing is hijacked system-wide: only traffic entering the tunnel is
   balanced.
+- **The ongoing notification.** The foreground service keeps a notification with the link in use,
+  live throughput and ping, and a *Disconnect* action.
 - **Data usage.** The dashboard reports the volume carried through the tunnel this session and
   cumulatively, split between Wi-Fi and mobile data (4G/5G), from the engine's per-interface byte
   counters.
@@ -195,6 +223,20 @@ opening several connections uses **Wi-Fi and mobile data (4G/5G) at once**.
 
 To build the app, see the full procedure: [Build the Android app](#build-the-android-app)
 (gomobile → `mergify.aar`, then Gradle → APK, and installing with `adb`).
+
+## Performance
+
+Measured on the Galaxy S25 with the tunnel active:
+
+<p align="center">
+  <a href="docs/screenshots/performance-speedtest.jpg"><img src="docs/screenshots/performance-speedtest.jpg" width="300" alt="Speedtest result with the tunnel active: 536 Mbit/s download and 947 Mbit/s upload"></a>
+  <br>
+  <sub><b>Speedtest, tunnel active</b> — 536 Mbit/s down and 947 Mbit/s up over Wi-Fi + 4G/5G.</sub>
+</p>
+
+The score follows your links: it is what they can carry together at that moment. Speedtest opens several
+connections, so it uses both of them; a single download still stays on one link, as explained in
+[How it helps](#how-it-helps).
 
 ## Build the Android app
 
@@ -283,7 +325,7 @@ cd android
 2. Plug the phone in, accept the debugging key, then check that the device is listed:
 
    ```bash
-   adb devices        # the S25 must appear in the "device" state (e.g. RFCY410YYEA    device)
+   adb devices        # the S25 must appear in the "device" state (e.g. R58M1234ABC    device)
    ```
 
 3. Install (or update) the app:
