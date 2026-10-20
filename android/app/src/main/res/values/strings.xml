@@ -1,7 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Mergify-Net</string>
-    <string name="notification_text">VPN actif — trafic équilibré entre les réseaux</string>
+
+    <!-- Ongoing notification (One UI Now Bar / status capsule). -->
+    <string name="notification_channel">Tunnel Mergify-Net</string>
+    <string name="notification_channel_description">État du tunnel, débits et latence en temps réel</string>
+    <string name="notification_connecting">Mergify-Net · Connexion…</string>
+    <string name="notification_connected">Mergify-Net · Connecté (%1$s)</string>
+    <string name="notification_measuring">Connexion sécurisée · mesure des débits…</string>
+    <string name="notification_disconnect">Déconnecter</string>
+
+    <!-- Active transport labels. -->
+    <string name="transport_wifi">Wi-Fi ★</string>
+    <string name="transport_cell">4G/5G ★</string>
+    <string name="transport_multi">Multi-flux</string>
+    <string name="transport_offline">Hors ligne</string>
+    <string name="transport_named">%1$s ★</string>
+    <string name="transport_name_wifi">Wi-Fi</string>
+    <string name="transport_name_cell">4G/5G</string>
+
+    <!-- High-importance alerts: degradation and emergency failover. -->
+    <string name="alert_channel">Alertes réseau</string>
+    <string name="alert_channel_description">Dégradations, pertes de paquets et bascules d\'urgence</string>
+    <string name="alert_degradation_title">Dégradation %1$s détectée</string>
+    <string name="alert_degradation_failover">Prise de relais par la 4G/5G · %1$s</string>
+    <string name="alert_failover_title">Décrochage Wi-Fi</string>
+    <string name="alert_failover_text">Prise de relais par la 4G/5G</string>
+    <string name="alert_latency">Latence %1$s</string>
+    <string name="alert_loss">pertes %1$s</string>
+
+    <!-- Cellular budget. -->
     <string name="mobile_cap_channel">Seuil de données mobiles</string>
     <string name="mobile_cap_reached">Seuil atteint — trafic mobile coupé, tout passe par le Wi-Fi</string>
 </resources>
