@@ -4,10 +4,10 @@ Thanks for helping. Bug reports, ideas and pull requests are all welcome.
 
 ## Reporting a bug
 
-Open an [issue](https://github.com/rohit267/net-merge/issues) and include:
+Open an [issue](https://github.com/rohit267/mergify-net/issues) and include:
 
-- your OS and version, and `net-merge version`
-- the output of `net-merge list` and `net-merge status`
+- your OS and version, and `mergify-net version`
+- the output of `mergify-net list` and `mergify-net status`
 - what you expected and what happened
 - how your connections are set up (for example Wi-Fi + iPhone USB)
 
@@ -18,7 +18,7 @@ For a security problem, see [SECURITY.md](SECURITY.md) instead.
 You need Go (the version in `go.mod`). On macOS you also need the Xcode command line tools.
 
 ```
-go build -o net-merge ./cmd/net-merge
+go build -o mergify-net ./cmd/mergify-net
 go vet ./...
 go test ./...
 ```
@@ -27,7 +27,7 @@ go test ./...
   `sudo ifconfig lo0 alias 127.0.0.2/32` and `sudo ifconfig lo0 alias 127.0.0.3/32`. Without them those
   tests skip.
 - Check the other platforms still compile: `GOOS=windows go vet ./...` and `GOOS=linux go vet ./...`.
-- To run net-merge on Windows from source you need `wintun.dll` (see [docs/DEVELOPING.md](docs/DEVELOPING.md)).
+- To run mergify-net on Windows from source you need `wintun.dll` (see [docs/DEVELOPING.md](docs/DEVELOPING.md)).
 
 How it works and where things live: [docs/DEVELOPING.md](docs/DEVELOPING.md).
 

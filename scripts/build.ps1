@@ -25,16 +25,16 @@ Invoke-Native 'go test' { go test ./... }
 # Version info, icon and manifest for each exe: antivirus ML models flag bare unsigned Go exes
 # (Microsoft's Trojan:Win32/Wacatac.B!ml).
 function New-Resources([string]$Exe, [string]$Description) {
-    Invoke-Native "resources $Exe" { go run github.com/tc-hib/go-winres@v0.3.3 simply --arch amd64 --out cmd\net-merge\rsrc --icon packaging\icons\hicolor\256x256\apps\net-merge.png --manifest cli --product-name net-merge --file-description $Description --original-filename $Exe --product-version $Version --file-version $Version --copyright 'net-merge contributors' }
+    Invoke-Native "resources $Exe" { go run github.com/tc-hib/go-winres@v0.3.3 simply --arch amd64 --out cmd\mergify-net\rsrc --icon packaging\icons\hicolor\256x256\apps\mergify-net.png --manifest cli --product-name mergify-net --file-description $Description --original-filename $Exe --product-version $Version --file-version $Version --copyright 'mergify-net contributors' }
 }
 
 # One source, two exes: a console CLI, and a windowless build that defaults to the tray.
-New-Resources 'net-merge.exe' 'net-merge'
-Invoke-Native 'build cli'  { go build -trimpath -ldflags "-s -w -X main.version=$Version" -o dist\net-merge.exe .\cmd\net-merge }
-New-Resources 'net-merge-tray.exe' 'net-merge tray'
-Invoke-Native 'build tray' { go build -trimpath -ldflags "-s -w -H=windowsgui -X main.defaultCmd=tray -X main.version=$Version" -o dist\net-merge-tray.exe .\cmd\net-merge }
-Remove-Item cmd\net-merge\rsrc_windows_amd64.syso
-Invoke-Native 'icon' { .\dist\net-merge.exe _icon dist\net-merge.ico }
+New-Resources 'mergify-net.exe' 'mergify-net'
+Invoke-Native 'build cli'  { go build -trimpath -ldflags "-s -w -X main.version=$Version" -o dist\mergify-net.exe .\cmd\mergify-net }
+New-Resources 'mergify-net-tray.exe' 'mergify-net tray'
+Invoke-Native 'build tray' { go build -trimpath -ldflags "-s -w -H=windowsgui -X main.defaultCmd=tray -X main.version=$Version" -o dist\mergify-net-tray.exe .\cmd\mergify-net }
+Remove-Item cmd\mergify-net\rsrc_windows_amd64.syso
+Invoke-Native 'icon' { .\dist\mergify-net.exe _icon dist\mergify-net.ico }
 
 & "$PSScriptRoot\fetch-wintun.ps1" -OutDir dist
 
@@ -47,8 +47,8 @@ if (-not $iscc) { throw 'ISCC.exe not found. Install Inno Setup 6 or set $env:IS
 
 $isccArgs = @("/DVersion=$Version")
 if ($RepoUrl) { $isccArgs += "/DRepoUrl=$RepoUrl" }
-Invoke-Native 'inno setup' { & $iscc @isccArgs installer\net-merge.iss }
+Invoke-Native 'inno setup' { & $iscc @isccArgs installer\mergify-net.iss }
 
-$portable = "dist\net-merge-$Version-portable.zip"
-Compress-Archive -Path dist\net-merge.exe, dist\net-merge-tray.exe, dist\wintun.dll, dist\wintun-LICENSE.txt, LICENSE, THIRD-PARTY-NOTICES.md, README.md -DestinationPath $portable
-Get-ChildItem dist\net-merge-setup-$Version.exe, $portable | ForEach-Object { '{0}  {1:N1} MB' -f $_.Name, ($_.Length / 1MB) }
+$portable = "dist\mergify-net-$Version-portable.zip"
+Compress-Archive -Path dist\mergify-net.exe, dist\mergify-net-tray.exe, dist\wintun.dll, dist\wintun-LICENSE.txt, LICENSE, THIRD-PARTY-NOTICES.md, README.md -DestinationPath $portable
+Get-ChildItem dist\mergify-net-setup-$Version.exe, $portable | ForEach-Object { '{0}  {1:N1} MB' -f $_.Name, ($_.Length / 1MB) }

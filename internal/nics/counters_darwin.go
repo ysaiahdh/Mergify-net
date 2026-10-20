@@ -16,7 +16,7 @@ const (
 )
 
 // Octets reads the kernel's byte counters for an adapter. They cover every app's traffic, not
-// just what net-merge relays: apps that bind to each adapter directly bypass the TUN but still
+// just what mergify-net relays: apps that bind to each adapter directly bypass the TUN but still
 // show up here.
 func Octets(idx int) (in, out uint64, ok bool) {
 	if idx <= 0 {

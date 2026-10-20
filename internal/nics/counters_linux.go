@@ -9,7 +9,7 @@ import (
 )
 
 // Octets reads the kernel's byte counters for an adapter. They cover every app's traffic, not
-// just what net-merge relays: apps like qBittorrent bind to each adapter directly and bypass the
+// just what mergify-net relays: apps like qBittorrent bind to each adapter directly and bypass the
 // TUN, but still show up here.
 func Octets(idx int) (in, out uint64, ok bool) {
 	if idx <= 0 {

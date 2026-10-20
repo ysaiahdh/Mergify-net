@@ -6,11 +6,11 @@ import (
 	"unicode/utf16"
 	"unicode/utf8"
 
-	"net-merge/internal/engine"
+	"mergify-net/internal/engine"
 )
 
 func TestShortenCountsUTF16AndKeepsRunesWhole(t *testing.T) {
-	s := "net-merge ON  ↓12 ↑3.4 Mbit/s"
+	s := "mergify-net ON  ↓12 ↑3.4 Mbit/s"
 	if got := shorten(s, 127); got != s {
 		t.Fatalf("short string changed: %q", got)
 	}

@@ -17,11 +17,11 @@ func IsAdmin() bool { return os.Geteuid() == 0 }
 
 // The single-instance lock is a flock on a root-created file: visible to every user, and
 // released by the kernel when the process dies, so a crash never leaves a stale lock behind.
-const lockPath = "/var/run/net-merge.lock"
+const lockPath = "/var/run/mergify-net.lock"
 
 var lockFile *os.File
 
-// SingleInstance is false if another net-merge (run or tray) already owns the utun.
+// SingleInstance is false if another mergify-net (run or tray) already owns the utun.
 // The file is intentionally kept open for the life of the process.
 func SingleInstance() bool {
 	f, err := os.OpenFile(lockPath, os.O_CREATE|os.O_RDWR, 0o644)
@@ -36,7 +36,7 @@ func SingleInstance() bool {
 	return true
 }
 
-// InstanceRunning reports whether a net-merge holds the lock; works for any user, since the
+// InstanceRunning reports whether a mergify-net holds the lock; works for any user, since the
 // file is world-readable and flock doesn't need write access.
 func InstanceRunning() bool {
 	f, err := os.Open(lockPath)
@@ -60,14 +60,14 @@ func RedirectStd(f *os.File) {
 	unix.Dup2(int(f.Fd()), 2)
 }
 
-// Where `net-merge install` puts the root-owned copy that sudoers allows: /usr/local/bin when only
-// root can write there, else /opt/net-merge/bin (Intel Macs, where Homebrew owns /usr/local/bin).
+// Where `mergify-net install` puts the root-owned copy that sudoers allows: /usr/local/bin when only
+// root can write there, else /opt/mergify-net/bin (Intel Macs, where Homebrew owns /usr/local/bin).
 const (
-	exePreferred = "/usr/local/bin/net-merge"
-	exeFallback  = "/opt/net-merge/bin/net-merge"
+	exePreferred = "/usr/local/bin/mergify-net"
+	exeFallback  = "/opt/mergify-net/bin/mergify-net"
 )
 
-// InstalledExe is the root-owned copy `net-merge install` made.
+// InstalledExe is the root-owned copy `mergify-net install` made.
 func InstalledExe() string {
 	if _, err := os.Stat(exeFallback); err == nil {
 		return exeFallback
@@ -98,7 +98,7 @@ func RelaunchElevated(args []string, hidden bool) error {
 }
 
 // RelaunchTray is RelaunchElevated for the tray, but first tries the passwordless sudoers rule
-// that `sudo net-merge install` sets up. That rule matches exactly `net-merge tray`, so it only
+// that `sudo mergify-net install` sets up. That rule matches exactly `mergify-net tray`, so it only
 // applies when the tray was started without flags.
 func RelaunchTray(args []string, hidden bool) error {
 	if len(args) == 1 && args[0] == "tray" {
@@ -121,7 +121,7 @@ func HasConsole() bool {
 // in the log file either way).
 func ShowError(msg string) {
 	exec.Command("/usr/bin/osascript",
-		"-e", "on run argv", "-e", `display notification (item 1 of argv) with title "net-merge"`, "-e", "end run",
+		"-e", "on run argv", "-e", `display notification (item 1 of argv) with title "mergify-net"`, "-e", "end run",
 		msg).Run()
 }
 

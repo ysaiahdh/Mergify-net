@@ -15,16 +15,20 @@ type Nic struct {
 	IP     net.IP
 	IP6    net.IP
 	Weight float64
+	// NetworkHandle is the Android Network handle (Network.getNetworkHandle(), API 31+) the
+	// flow is bound to through SocketBridge.BindSocketToNetwork. 0 everywhere else: those
+	// platforms force egress by interface index instead.
+	NetworkHandle int64
 }
 
-// Skip is an adapter that was seen but not used, with the reason (shown by `net-merge list`).
+// Skip is an adapter that was seen but not used, with the reason (shown by `mergify-net list`).
 type Skip struct{ Name, Reason string }
 
 // Second line of defence after the adapter type check: virtual adapters that report as plain
 // Ethernet (virtual switches, VPN TAP drivers, VM host-only adapters, container bridges), matched
 // by name or driver description. The anchored names are Linux interface naming conventions.
 var (
-	virtualName = regexp.MustCompile(`(?i)loopback|vethernet|wsl|tailscale|zerotier|wintun|net-merge|docker|podman|^veth|^virbr|^br-|^vboxnet|^vmnet|^vnet\d|^lxc|^lxdbr|^cni|^flannel|^wg\d|^tun\d|^tap\d|^zt`)
+	virtualName = regexp.MustCompile(`(?i)loopback|vethernet|wsl|tailscale|zerotier|wintun|mergify-net|docker|podman|^veth|^virbr|^br-|^vboxnet|^vmnet|^vnet\d|^lxc|^lxdbr|^cni|^flannel|^wg\d|^tun\d|^tap\d|^zt`)
 	virtualDesc = regexp.MustCompile(`(?i)virtual|vpn|\btap\b|tap-|tunnel|wintun|wireguard|tailscale|zerotier|openvpn|anyconnect|fortinet|vmware|npcap|miniport|teredo|isatap|6to4|pseudo`)
 )
 
@@ -34,6 +38,11 @@ func DiscoverNics(include []string, weights map[string]float64) ([]Nic, error) {
 }
 
 func DiscoverNicsDetailed(include []string, weights map[string]float64) ([]Nic, []Skip, error) {
+	// On Android a VpnService can't enumerate adapters without root: the host app injects
+	// the active networks (Wi-Fi, cellular) via SetManualNics and discovery is skipped.
+	if list, ok := manualNics(); ok {
+		return list, nil, nil
+	}
 	ifaces, err := net.Interfaces()
 	if err != nil {
 		return nil, nil, err

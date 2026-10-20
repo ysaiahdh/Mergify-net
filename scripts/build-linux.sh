@@ -12,13 +12,13 @@ FORMATS=${FORMATS:-deb rpm apk archlinux}
 # GOARCH  GOARM  nfpm-ARCH  tarball-name  [format to skip]
 while read -r goarch goarm narch name skip; do
     CGO_ENABLED=0 GOOS=linux GOARCH=$goarch GOARM=${goarm/-/} \
-        go build -trimpath -ldflags "-s -w -X main.version=$v" -o net-merge ./cmd/net-merge
-    tar -czf "$out/net-merge-$v-linux-$name.tar.gz" net-merge LICENSE THIRD-PARTY-NOTICES.md
+        go build -trimpath -ldflags "-s -w -X main.version=$v" -o mergify-net ./cmd/mergify-net
+    tar -czf "$out/mergify-net-$v-linux-$name.tar.gz" mergify-net LICENSE THIRD-PARTY-NOTICES.md
     for p in $FORMATS; do
         [ "$p" = "${skip:-}" ] && continue
         VERSION=$v ARCH=$narch "$nfpm" package -p "$p" -f packaging/nfpm.yaml -t "$out/"
     done
-    rm net-merge
+    rm mergify-net
 # Debian's armhf is the armv6 build, which also runs on armv7, so armv7 gets no .deb of its own.
 done <<'ARCHS'
 amd64   -  amd64   x86_64

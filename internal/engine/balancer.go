@@ -11,7 +11,7 @@ import (
 	"syscall"
 	"time"
 
-	"net-merge/internal/nics"
+	"mergify-net/internal/nics"
 )
 
 // Balancer dials outbound flows through the Scheduler. Front-ends (SOCKS5 now, TUN later)
@@ -150,8 +150,8 @@ func (b *Balancer) DialTCP(ctx context.Context, host string, port int) (net.Conn
 		}
 		tried[sl.key] = struct{}{}
 		d := net.Dialer{
-			LocalAddr: &net.TCPAddr{IP: sl.ip(f)},            // binding the source IP pins the flow to this NIC
-			Control:   nics.ForceEgress(sl.Index, f == Fam6), // and this forces egress even if the TUN's routes match
+			LocalAddr: &net.TCPAddr{IP: sl.ip(f)},                                  // binding the source IP pins the flow to this NIC
+			Control:   nics.SocketControl(sl.Index, sl.networkHandle(), f == Fam6), // forces egress: bridge on Android, SO_* elsewhere
 			Timeout:   b.ConnectTimeout,
 			KeepAlive: 30 * time.Second,
 		}

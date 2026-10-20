@@ -32,8 +32,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $tag = '${{ github.ref_name }}'
-          $title = 'net-merge ' + $tag.TrimStart('v')
-          $files = Get-ChildItem dist/net-merge-setup-*.exe, dist/net-merge-*-portable.zip
+          $title = 'mergify-net ' + $tag.TrimStart('v')
+          $files = Get-ChildItem dist/mergify-net-setup-*.exe, dist/mergify-net-*-portable.zip
           gh release view $tag *> $null
           if ($LASTEXITCODE -eq 0) {   # release already created by hand: refresh files and notes
             gh release upload $tag $files --clobber
@@ -65,7 +65,7 @@ jobs:
         run: gh release upload '${{ github.ref_name }}' dist/* --clobber
 
   # Rebuilds the signed apt, dnf/zypper, Alpine and Arch repositories from the packages of the last
-  # two releases and publishes them on GitHub Pages: sudo apt install net-merge, dnf, zypper, apk,
+  # two releases and publishes them on GitHub Pages: sudo apt install mergify-net, dnf, zypper, apk,
   # pacman. Needs the secrets APT_GPG_PRIVATE_KEY (armored private signing key) and
   # APK_RSA_PRIVATE_KEY (PEM), and Pages set to "GitHub Actions".
   repos:
@@ -91,10 +91,10 @@ jobs:
           test -n "$APK_RSA_PRIVATE_KEY" || { echo "secret APK_RSA_PRIVATE_KEY is not set"; exit 1; }
           echo "$APT_GPG_PRIVATE_KEY" | gpg --batch --import
           echo "GPG_KEY_ID=$(gpg --list-secret-keys --with-colons | awk -F: '/^fpr/{print $10; exit}')" >> "$GITHUB_ENV"
-          # apk finds the key by file name, so it must be called net-merge.rsa
-          echo "$APK_RSA_PRIVATE_KEY" > "$RUNNER_TEMP/net-merge.rsa"
-          openssl rsa -in "$RUNNER_TEMP/net-merge.rsa" -pubout -out "$RUNNER_TEMP/net-merge.rsa.pub"
-          echo "APK_KEY=$RUNNER_TEMP/net-merge.rsa" >> "$GITHUB_ENV"
+          # apk finds the key by file name, so it must be called mergify-net.rsa
+          echo "$APK_RSA_PRIVATE_KEY" > "$RUNNER_TEMP/mergify-net.rsa"
+          openssl rsa -in "$RUNNER_TEMP/mergify-net.rsa" -pubout -out "$RUNNER_TEMP/mergify-net.rsa.pub"
+          echo "APK_KEY=$RUNNER_TEMP/mergify-net.rsa" >> "$GITHUB_ENV"
       - name: Collect the packages of the last two releases
         env:
           GH_TOKEN: ${{ github.token }}
@@ -140,13 +140,13 @@ jobs:
         run: |
           v='${{ github.ref_name }}'; v=${v#v}
           for arch in arm64 amd64; do
-            CGO_ENABLED=1 GOARCH=$arch go build -ldflags "-s -w -X main.version=$v" -o net-merge-$arch ./cmd/net-merge
+            CGO_ENABLED=1 GOARCH=$arch go build -ldflags "-s -w -X main.version=$v" -o mergify-net-$arch ./cmd/mergify-net
           done
-          lipo -create -output net-merge net-merge-arm64 net-merge-amd64
-          codesign --force --sign - net-merge   # ad-hoc: lipo invalidates the per-arch signatures
+          lipo -create -output mergify-net mergify-net-arm64 mergify-net-amd64
+          codesign --force --sign - mergify-net   # ad-hoc: lipo invalidates the per-arch signatures
           mkdir dist
-          tar -czf dist/net-merge-$v-macos-universal.tar.gz net-merge LICENSE THIRD-PARTY-NOTICES.md
+          tar -czf dist/mergify-net-$v-macos-universal.tar.gz mergify-net LICENSE THIRD-PARTY-NOTICES.md
       - name: Upload to the release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload '${{ github.ref_name }}' dist/net-merge-*-macos-universal.tar.gz --clobber
+        run: gh release upload '${{ github.ref_name }}' dist/mergify-net-*-macos-universal.tar.gz --clobber

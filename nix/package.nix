@@ -6,7 +6,7 @@
 }:
 
 (buildGoModule.override { go = go_1_27; }) {
-  pname = "net-merge";
+  pname = "mergify-net";
   inherit version;
 
   src = lib.fileset.toSource {
@@ -20,7 +20,7 @@
   };
 
   vendorHash = "sha256-jbafKGjgOXZAcyQVILbZ3ZUUMhD8gpz+NGBT48Du7mA=";
-  subPackages = [ "cmd/net-merge" ];
+  subPackages = [ "cmd/mergify-net" ];
   env.CGO_ENABLED = 0;
   ldflags = [
     "-s"
@@ -33,9 +33,9 @@
 
   meta = {
     description = "Use all your network adapters at once: balances connections across Wi-Fi, Ethernet and tethers";
-    homepage = "https://github.com/rohit267/net-merge";
+    homepage = "https://github.com/rohit267/mergify-net";
     license = lib.licenses.mit;
-    mainProgram = "net-merge";
+    mainProgram = "mergify-net";
     platforms = lib.platforms.linux ++ lib.platforms.windows;
   };
 }

@@ -6,7 +6,7 @@ import (
 	"net"
 	"sync"
 
-	"net-merge/internal/nics"
+	"mergify-net/internal/nics"
 )
 
 // slotConn counts a pinned TCP flow's bytes and releases its slot on Close. It exposes
@@ -83,7 +83,9 @@ func (b *Balancer) ListenUDP(ctx context.Context, f Family) (net.PacketConn, err
 			return nil, lastErr
 		}
 		tried[sl.key] = struct{}{}
-		lc := net.ListenConfig{Control: nics.ForceEgress(sl.Index, f == Fam6)}
+		// Control protects the socket (Android VpnService) and pins it to this NIC's network,
+		// so a UDP flow's datagrams never loop back into the TUN we serve.
+		lc := net.ListenConfig{Control: nics.SocketControl(sl.Index, sl.networkHandle(), f == Fam6)}
 		pc, err := lc.ListenPacket(ctx, network, net.JoinHostPort(sl.ip(f).String(), "0"))
 		b.S.ReleaseFor(sl, f)
 		if err != nil {

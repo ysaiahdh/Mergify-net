@@ -25,7 +25,7 @@ jobs:
       - run: go test ./...
       - name: Cross-build darwin/amd64
         if: runner.os == 'macOS'
-        run: CGO_ENABLED=1 GOARCH=amd64 go build -o /dev/null ./cmd/net-merge
+        run: CGO_ENABLED=1 GOARCH=amd64 go build -o /dev/null ./cmd/mergify-net
 
   # The tests on every other CPU Linux packages are built for: 386 runs natively on the x86-64
   # runner, the rest under qemu user-mode emulation (s390x is big-endian, the rest little).
@@ -71,11 +71,11 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
-      - run: go build -o net-merge ./cmd/net-merge
-      - run: bash scripts/linux-e2e.sh ./net-merge
-      - name: net-merge logs
+      - run: go build -o mergify-net ./cmd/mergify-net
+      - run: bash scripts/linux-e2e.sh ./mergify-net
+      - name: mergify-net logs
         if: always()
-        run: cat /tmp/net-merge-e2e/*.log 2>/dev/null || true
+        run: cat /tmp/mergify-net-e2e/*.log 2>/dev/null || true
 
   # System-wide mode for real, as root: utun, routes, relaying, off, kill -9. One NIC, so no balancing.
   macos-smoke:
@@ -85,11 +85,11 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
-      - run: go build -o net-merge ./cmd/net-merge
-      - run: bash scripts/macos-smoke.sh ./net-merge
-      - name: net-merge logs
+      - run: go build -o mergify-net ./cmd/mergify-net
+      - run: bash scripts/macos-smoke.sh ./mergify-net
+      - name: mergify-net logs
         if: always()
-        run: cat /tmp/net-merge-smoke*.log 2>/dev/null || true
+        run: cat /tmp/mergify-net-smoke*.log 2>/dev/null || true
 
   # System-wide mode for real, as admin: Wintun, routes, the internet probe over pinned sockets,
   # relaying and off; also with the NIC demoted to secondary and with weak host send/forwarding on.
@@ -105,12 +105,12 @@ jobs:
       - shell: pwsh
         run: |
           scripts/build.ps1
-          if ((Get-Item dist\net-merge-tray.exe).VersionInfo.ProductName -ne 'net-merge') { throw 'net-merge-tray.exe has no version info' }
+          if ((Get-Item dist\mergify-net-tray.exe).VersionInfo.ProductName -ne 'mergify-net') { throw 'mergify-net-tray.exe has no version info' }
           go build -o dist/winfakeup.exe ./scripts/winfakeup
-          scripts/windows-smoke.ps1 dist\net-merge.exe
+          scripts/windows-smoke.ps1 dist\mergify-net.exe
 
   # The Linux packages for every CPU and the apt, dnf/zypper, Alpine and Arch repositories, tried for
-  # real: build them, serve them on localhost, then install net-merge from them on Ubuntu (here),
+  # real: build them, serve them on localhost, then install mergify-net from them on Ubuntu (here),
   # Debian, Fedora, Rocky, openSUSE, Alpine and Arch.
   packages:
     runs-on: ubuntu-latest
@@ -128,81 +128,81 @@ jobs:
           ls dist | wc -l
       - name: Validate the desktop and AppStream files
         run: |
-          desktop-file-validate packaging/io.github.rohit267.net-merge.desktop
-          appstreamcli validate --no-net packaging/io.github.rohit267.net-merge.metainfo.xml
+          desktop-file-validate packaging/io.github.rohit267.mergify-net.desktop
+          appstreamcli validate --no-net packaging/io.github.rohit267.mergify-net.metainfo.xml
       - name: Build signed repositories with throwaway keys
         run: |
           export GNUPGHOME=$(mktemp -d)
-          gpg --batch --passphrase '' --quick-generate-key 'net-merge CI <ci@example.invalid>' rsa3072 sign never
+          gpg --batch --passphrase '' --quick-generate-key 'mergify-net CI <ci@example.invalid>' rsa3072 sign never
           key=$(gpg --list-secret-keys --with-colons | awk -F: '/^fpr/{print $10; exit}')
-          openssl genrsa -out "$RUNNER_TEMP/net-merge.rsa" 2048
-          openssl rsa -in "$RUNNER_TEMP/net-merge.rsa" -pubout -out "$RUNNER_TEMP/net-merge.rsa.pub"
+          openssl genrsa -out "$RUNNER_TEMP/mergify-net.rsa" 2048
+          openssl rsa -in "$RUNNER_TEMP/mergify-net.rsa" -pubout -out "$RUNNER_TEMP/mergify-net.rsa.pub"
           GPG_KEY_ID=$key REPO_BASE_URL=http://localhost:8000 scripts/build-repos.sh dist site
-          GPG_KEY_ID=$key APK_KEY="$RUNNER_TEMP/net-merge.rsa" scripts/build-container-repos.sh dist site
+          GPG_KEY_ID=$key APK_KEY="$RUNNER_TEMP/mergify-net.rsa" scripts/build-container-repos.sh dist site
           echo "GNUPGHOME=$GNUPGHOME" >> "$GITHUB_ENV"
           echo "KEY=$key" >> "$GITHUB_ENV"
           python3 -m http.server 8000 --directory site >/dev/null 2>&1 &
           sleep 2
           find site \( -name '*.db' -o -name APKINDEX.tar.gz -o -name Packages -o -name repomd.xml \) | sort
-      - name: apt install net-merge (Ubuntu)
+      - name: apt install mergify-net (Ubuntu)
         run: |
-          curl -fsS http://localhost:8000/apt/key.gpg | sudo tee /usr/share/keyrings/net-merge.gpg >/dev/null
-          echo "deb [signed-by=/usr/share/keyrings/net-merge.gpg] http://localhost:8000/apt stable main" | sudo tee /etc/apt/sources.list.d/net-merge.list
+          curl -fsS http://localhost:8000/apt/key.gpg | sudo tee /usr/share/keyrings/mergify-net.gpg >/dev/null
+          echo "deb [signed-by=/usr/share/keyrings/mergify-net.gpg] http://localhost:8000/apt stable main" | sudo tee /etc/apt/sources.list.d/mergify-net.list
           sudo apt-get update
-          sudo apt-get install -y net-merge
-          getcap /usr/bin/net-merge | tee /dev/stderr | grep -q cap_net_admin
-          net-merge version
-          desktop-file-validate /usr/share/applications/io.github.rohit267.net-merge.desktop
-          test -f /usr/share/icons/hicolor/256x256/apps/net-merge.png
-      - name: apt install net-merge (Debian)
+          sudo apt-get install -y mergify-net
+          getcap /usr/bin/mergify-net | tee /dev/stderr | grep -q cap_net_admin
+          mergify-net version
+          desktop-file-validate /usr/share/applications/io.github.rohit267.mergify-net.desktop
+          test -f /usr/share/icons/hicolor/256x256/apps/mergify-net.png
+      - name: apt install mergify-net (Debian)
         run: |
           docker run --rm --network host --cap-add NET_ADMIN debian:stable bash -ec '
             apt-get update -qq && apt-get install -y -qq curl ca-certificates >/dev/null
-            curl -fsS -o /usr/share/keyrings/net-merge.gpg http://localhost:8000/apt/key.gpg
-            echo "deb [signed-by=/usr/share/keyrings/net-merge.gpg] http://localhost:8000/apt stable main" > /etc/apt/sources.list.d/net-merge.list
+            curl -fsS -o /usr/share/keyrings/mergify-net.gpg http://localhost:8000/apt/key.gpg
+            echo "deb [signed-by=/usr/share/keyrings/mergify-net.gpg] http://localhost:8000/apt stable main" > /etc/apt/sources.list.d/mergify-net.list
             apt-get update -qq
-            apt-get install -y net-merge
-            net-merge version'
-      - name: dnf install net-merge (Fedora, Rocky)
+            apt-get install -y mergify-net
+            mergify-net version'
+      - name: dnf install mergify-net (Fedora, Rocky)
         run: |
           for image in fedora:latest rockylinux:9; do
             docker run --rm --network host --cap-add NET_ADMIN --cap-add NET_RAW $image bash -ec '
-              curl -fsS -o /etc/yum.repos.d/net-merge.repo http://localhost:8000/rpm/net-merge.repo
-              dnf install -y net-merge
-              rpm -q net-merge
-              net-merge version'
+              curl -fsS -o /etc/yum.repos.d/mergify-net.repo http://localhost:8000/rpm/mergify-net.repo
+              dnf install -y mergify-net
+              rpm -q mergify-net
+              mergify-net version'
           done
-      - name: zypper install net-merge (openSUSE)
+      - name: zypper install mergify-net (openSUSE)
         run: |
           docker run --rm --network host --cap-add NET_ADMIN --cap-add NET_RAW opensuse/tumbleweed bash -ec '
-            zypper --non-interactive addrepo http://localhost:8000/rpm/net-merge.repo
+            zypper --non-interactive addrepo http://localhost:8000/rpm/mergify-net.repo
             zypper --non-interactive --gpg-auto-import-keys refresh
-            zypper --non-interactive install net-merge
-            rpm -q net-merge
-            net-merge version'
-      - name: apk add net-merge (Alpine)
+            zypper --non-interactive install mergify-net
+            rpm -q mergify-net
+            mergify-net version'
+      - name: apk add mergify-net (Alpine)
         run: |
           docker run --rm --network host --cap-add NET_ADMIN --cap-add NET_RAW alpine:3.22 sh -ec '
-            wget -qO /etc/apk/keys/net-merge.rsa.pub http://127.0.0.1:8000/apk/net-merge.rsa.pub
+            wget -qO /etc/apk/keys/mergify-net.rsa.pub http://127.0.0.1:8000/apk/mergify-net.rsa.pub
             echo http://127.0.0.1:8000/apk >> /etc/apk/repositories
-            apk add net-merge
-            getcap /usr/bin/net-merge
-            net-merge version'
-      - name: pacman -S net-merge (Arch)
+            apk add mergify-net
+            getcap /usr/bin/mergify-net
+            mergify-net version'
+      - name: pacman -S mergify-net (Arch)
         run: |
           docker run --rm --network host --cap-add NET_ADMIN --cap-add NET_RAW -e KEY archlinux:latest bash -ec '
             pacman-key --init
             curl -fsS http://localhost:8000/apt/key.asc | pacman-key --add -
             pacman-key --lsign-key "$KEY"
-            printf "\n[net-merge]\nSigLevel = Required\nServer = http://localhost:8000/arch/\$arch\n" >> /etc/pacman.conf
-            pacman --disable-sandbox -Sy --noconfirm net-merge
-            getcap /usr/bin/net-merge
-            net-merge version'
+            printf "\n[mergify-net]\nSigLevel = Required\nServer = http://localhost:8000/arch/\$arch\n" >> /etc/pacman.conf
+            pacman --disable-sandbox -Sy --noconfirm mergify-net
+            getcap /usr/bin/mergify-net
+            mergify-net version'
 
   nix:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: cachix/install-nix-action@v31
-      - run: nix build -L .#net-merge
+      - run: nix build -L .#mergify-net
       - run: nix flake check -L

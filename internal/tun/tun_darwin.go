@@ -9,11 +9,19 @@ import (
 	"sync"
 	"time"
 
-	"net-merge/internal/logx"
-	"net-merge/internal/nics"
+	"github.com/xjasonlyu/tun2socks/v2/core/device"
+	t2stun "github.com/xjasonlyu/tun2socks/v2/core/device/tun"
+
+	"mergify-net/internal/logx"
+	"mergify-net/internal/nics"
 )
 
 const openHint = "needs root"
+
+// openDevice opens the utun adapter and returns the link endpoint reading/writing its packets.
+func (t *Tun) openDevice() (device.Device, error) {
+	return t2stun.Open(openName, uint32(t.MTU))
+}
 
 // macOS only accepts "utun" or "utunN" as a TUN name; "utun" lets the kernel pick the number.
 func init() {

@@ -1,11 +1,12 @@
 package engine
 
 import (
+	"math"
 	"net"
 	"testing"
 	"time"
 
-	"net-merge/internal/nics"
+	"mergify-net/internal/nics"
 )
 
 func nic(name, ip string, w float64) nics.Nic {
@@ -311,5 +312,97 @@ func TestUpdateDropsVanishedWhenIdle(t *testing.T) {
 	s.Update(nil)
 	if len(s.Snapshot()) != 0 {
 		t.Fatal("NIC should be dropped once idle")
+	}
+}
+
+// The lowest-latency interface takes every flow while it has room; the other one only sees
+// traffic once the primary counts as saturated (no capacity measured yet: the active-flow
+// count stands in for it).
+func TestStickyPrimaryByLatency(t *testing.T) {
+	s := NewScheduler([]nics.Nic{nic("wifi", "10.0.0.1", 1), nic("cell", "10.0.0.2", 1)})
+	wifi, cell := s.slots[0], s.slots[1]
+	s.SetState(wifi, Fam4, true)
+	s.SetState(cell, Fam4, true)
+	wifi.rtt[Fam4].Store(20_000) // µs
+	cell.rtt[Fam4].Store(80_000)
+
+	for i := 0; i < minFlowsSpread; i++ {
+		if got := s.Acquire(nil); got != wifi {
+			t.Fatalf("flow %d went to %s, want the lowest-latency primary (wifi)", i, got.Name)
+		}
+	}
+	snap := s.Snapshot()
+	if !snap[0].Primary || snap[0].RTT != 20 {
+		t.Fatalf("snapshot must expose the primary and its latency: %+v", snap[0])
+	}
+	// The primary now counts as saturated: new flows spill onto the secondary.
+	seen := map[string]int{}
+	for i := 0; i < 8; i++ {
+		seen[s.Acquire(nil).Name]++
+	}
+	if seen["cell"] == 0 {
+		t.Fatalf("saturated primary must spill to the secondary, got %v", seen)
+	}
+}
+
+// A challenger only takes the seat when it is clearly (primarySwitchPct) faster: similar
+// latencies must not make the primary flap back and forth.
+func TestPrimarySwitchNeedsMargin(t *testing.T) {
+	s := NewScheduler([]nics.Nic{nic("wifi", "10.0.0.1", 1), nic("cell", "10.0.0.2", 1)})
+	wifi, cell := s.slots[0], s.slots[1]
+	s.SetState(wifi, Fam4, true)
+	s.SetState(cell, Fam4, true)
+	wifi.rtt[Fam4].Store(20_000)
+	cell.rtt[Fam4].Store(30_000)
+
+	for i := 0; i < 3; i++ { // wifi is fastest: primary
+		if got := s.Acquire(nil); got != wifi {
+			t.Fatalf("flow %d went to %s, want the fastest NIC (wifi)", i, got.Name)
+		}
+	}
+	cell.rtt[Fam4].Store(16_000) // 20% faster: inside the margin, no handover
+	if got := s.Acquire(nil); got != wifi {
+		t.Fatalf("a challenger inside the margin must not steal the seat, got %s", got.Name)
+	}
+	cell.rtt[Fam4].Store(14_000) // 33% faster: outside the margin, handover
+	if got := s.Acquire(nil); got != cell {
+		t.Fatalf("a clearly faster challenger must take the seat, got %s", got.Name)
+	}
+}
+
+// A lossy primary (recent probe failures = dropped packets) yields every new flow to the
+// secondary, even though it still wins on latency.
+func TestLossyPrimaryYieldsAllFlows(t *testing.T) {
+	s := NewScheduler([]nics.Nic{nic("wifi", "10.0.0.1", 1), nic("cell", "10.0.0.2", 1)})
+	wifi, cell := s.slots[0], s.slots[1]
+	s.SetState(wifi, Fam4, true)
+	s.SetState(cell, Fam4, true)
+	wifi.rtt[Fam4].Store(10_000)
+	cell.rtt[Fam4].Store(50_000)
+	for i := 0; i < 3; i++ { // loss EWMA: 0.2 → 0.36 → 0.488 > primaryLossMax
+		wifi.recordProbe(Fam4, false, 0)
+	}
+	for i := 0; i < 6; i++ {
+		if got := s.Acquire(nil); got != cell {
+			t.Fatalf("flow %d went to the lossy primary (%s), want the healthy secondary", i, got.Name)
+		}
+	}
+}
+
+func TestRecordProbeSmooths(t *testing.T) {
+	s := NewScheduler([]nics.Nic{nic("A", "10.0.0.1", 1)})
+	sl := s.slots[0]
+	sl.recordProbe(Fam4, true, 10*time.Millisecond) // first sample: taken as-is
+	if got := sl.rtt[Fam4].Load(); got != 10_000 {
+		t.Fatalf("first sample should be raw, got %d µs", got)
+	}
+	sl.recordProbe(Fam4, true, 30*time.Millisecond) // EWMA: 0.3*30 + 0.7*10 = 16 ms
+	if got := sl.rtt[Fam4].Load(); got != 16_000 {
+		t.Fatalf("smoothed RTT = %d µs, want 16000", got)
+	}
+	sl.recordProbe(Fam4, false, 0)
+	sl.recordProbe(Fam4, false, 0) // loss: 0.2 → 0.36
+	if got := sl.loadLoss(Fam4); math.Abs(got-0.36) > 1e-9 {
+		t.Fatalf("loss after two failed probes = %v, want 0.36", got)
 	}
 }

@@ -1,6 +1,6 @@
 # Third-party notices
 
-net-merge is MIT licensed (see `LICENSE`). It links the following libraries, all under permissive
+mergify-net is MIT licensed (see `LICENSE`). It links the following libraries, all under permissive
 licenses (license texts are in each project's repository and in the Go module cache):
 
 | Component | License | Use |

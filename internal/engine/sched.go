@@ -8,7 +8,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"net-merge/internal/nics"
+	"mergify-net/internal/nics"
 )
 
 // Family selects which address of a NIC a flow is pinned to. Load, speed and health are tracked
@@ -35,7 +35,10 @@ func (l linkState) String() string {
 	return [...]string{"checking", "up", "no internet"}[l]
 }
 
-type slotAddr struct{ ip4, ip6 net.IP }
+type slotAddr struct {
+	ip4, ip6 net.IP
+	handle   int64 // Android Network handle bound to these addresses (0 elsewhere)
+}
 
 // Slot is a NIC plus its live counters. Counters are atomic so the data path never takes a lock.
 type Slot struct {
@@ -49,6 +52,12 @@ type Slot struct {
 	bytesIn, bytesOut     [2]atomic.Int64
 	probing               [2]atomic.Bool
 
+	// Probe-based quality estimates (probe.go), written by the probe goroutines and read by
+	// the balancer's primary selection: plain atomics, no lock on that path. The loss rate is
+	// a float64's bits in a Uint64 (sync/atomic has no float types anymore).
+	rtt  [2]atomic.Int64  // smoothed connect time, microseconds; 0 = never measured
+	loss [2]atomic.Uint64 // math.Float64bits of the smoothed probe failure rate, 0..1
+
 	// guarded by Scheduler.mu
 	weight          [2]float64
 	present         bool
@@ -59,7 +68,7 @@ type Slot struct {
 	rateIn, rateOut [2]float64 // bytes/s over the last tick
 	peak            [2]float64 // observed capacity: max recent rateIn+rateOut
 
-	// The adapter's total traffic from the OS's counters (all apps, not only net-merge's flows).
+	// The adapter's total traffic from the OS's counters (all apps, not only mergify-net's flows).
 	linkIn, linkOut         uint64
 	linkRateIn, linkRateOut float64
 	linkPrimed              bool
@@ -73,6 +82,11 @@ func (sl *Slot) ip(f Family) net.IP {
 	return a.ip4
 }
 
+// networkHandle is the Android Network handle of the slot's current addresses (0 on platforms
+// that force egress by interface index). It rides along addr so an address change (new network)
+// atomically updates the handle too.
+func (sl *Slot) networkHandle() int64 { return sl.addr.Load().handle }
+
 type SlotStats struct {
 	Name              string
 	IP                string
@@ -84,19 +98,25 @@ type SlotStats struct {
 	Active, Total     int64
 	Failed            int64
 	BytesIn, BytesOut int64
-	RateIn, RateOut   float64 // through net-merge, both families summed (bytes/s)
+	RateIn, RateOut   float64 // through mergify-net, both families summed (bytes/s)
 	LinkIn, LinkOut   float64 // through the adapter by any app, from the OS's counters (bytes/s)
 	Peak, Peak6       float64
+	RTT               float64 // smoothed probe latency (ms); -1 when never measured
+	Loss              float64 // smoothed probe failure rate, 0..1
+	Primary           bool    // currently the preferred NIC for its address family
 }
 
-// Scheduler is weighted least-active-flows, per address family: each new flow goes to the NIC
-// with the lowest (active + 1) / weight among those that have an address of that family. Only
-// new flows take the lock.
+// Scheduler picks the NIC each new flow leaves through. The lowest-latency NIC per address
+// family (smoothed probe RTT) is the primary and takes every new flow while it has room;
+// the others only see traffic when it is saturated or lossy, and until the first probes
+// land the picking is the plain weighted least-active-flows below. Only new flows take the
+// lock.
 type Scheduler struct {
-	mu    sync.Mutex
-	slots []*Slot
-	auto  bool
-	now   func() time.Time
+	mu      sync.Mutex
+	slots   []*Slot
+	primary [2]*Slot // the preferred NIC per family; guarded by mu
+	auto    bool
+	now     func() time.Time
 }
 
 func NewScheduler(nics []nics.Nic) *Scheduler {
@@ -113,7 +133,7 @@ func (s *Scheduler) SetAuto(on bool) {
 }
 
 func normAddr(n nics.Nic) *slotAddr {
-	a := &slotAddr{}
+	a := &slotAddr{handle: n.NetworkHandle}
 	if n.IP != nil {
 		a.ip4 = n.IP.To4()
 	}
@@ -158,7 +178,7 @@ func (s *Scheduler) Update(nics []nics.Nic) {
 		if !old.ip6.Equal(na.ip6) {
 			found.state[Fam6] = stateUnknown
 		}
-		if !old.ip4.Equal(na.ip4) || !old.ip6.Equal(na.ip6) {
+		if !old.ip4.Equal(na.ip4) || !old.ip6.Equal(na.ip6) || old.handle != na.handle {
 			found.addr.Store(na)
 		}
 	}
@@ -173,6 +193,19 @@ func (s *Scheduler) Update(nics []nics.Nic) {
 
 // A NIC counts as measured once it has carried this much (bytes/s, about 0.4 Mbit/s).
 const minMeasuredPeak = 50_000
+
+// Primary-selection tuning. The fastest interface (lowest smoothed probe RTT) takes every new
+// flow; the others only see traffic when it is saturated or lossy. Latency is the right
+// primary metric because it reacts within one probe interval to a link that degrades (loss
+// retransmissions and queuing inflate it long before throughput collapses), and because
+// alternating flows over two links of very different quality drags every flow down to the
+// slow one — the speed-test drops this policy exists to fix.
+const (
+	primarySwitchPct = 25 // a challenger must be this much (%) faster to take the seat
+	primaryLossMax   = 0.25
+	saturationFrac   = 0.85 // of the observed capacity peak counts as saturated
+	minFlowsSpread   = 12   // flows before spreading while no capacity was measured yet
+)
 
 // Tick samples throughput per family. With auto on, a family's weights follow each NIC's
 // observed peak for that family (floored at 0.05, so a slow path still sees an occasional flow
@@ -301,6 +334,28 @@ func (s *Scheduler) AcquireFor(f Family, skip map[string]struct{}) *Slot {
 	if len(pool) == 0 {
 		return nil
 	}
+	// Stick to the lowest-latency NIC of the pool while it has room: the primary takes every
+	// new flow, and the others only see traffic once it is saturated or lossy. Before the
+	// first probes land (or when every measured link is lossy) this falls through to the
+	// plain weighted least-active spreading below.
+	s.primary[f] = s.pickPrimaryLocked(f, pool)
+	if p := s.primary[f]; p != nil && !p.lossy(f) && !s.saturatedLocked(p, f) {
+		p.active.Add(1)
+		p.actF[f].Add(1)
+		p.total.Add(1)
+		return p
+	}
+	// Spill-over: a lossy NIC (recent probe failures = packets being dropped) stops attracting
+	// flows unless nothing healthy is left in the pool.
+	var live []*Slot
+	for _, sl := range pool {
+		if !sl.lossy(f) {
+			live = append(live, sl)
+		}
+	}
+	if len(live) > 0 {
+		pool = live
+	}
 	// Random start so ties don't resonate with the arrival pattern (a rotating counter can
 	// lock onto e.g. "every third flow is a short DNS-like one" and starve an adapter).
 	start := rand.IntN(len(pool))
@@ -317,6 +372,57 @@ func (s *Scheduler) AcquireFor(f Family, skip map[string]struct{}) *Slot {
 	best.total.Add(1)
 	return best
 }
+
+// pickPrimaryLocked elects the preferred NIC for one family: the pool member with the lowest
+// smoothed probe latency. The sitting primary keeps its seat unless a challenger is
+// primarySwitchPct faster, so two similar links don't flap; when the primary left the pool
+// (cooldown, vanished) its seat goes to the fastest member of the pool. Returns nil when
+// nothing has been measured yet — the caller then falls back to plain least-active spreading,
+// which is also what keeps behaviour identical before the first probe lands.
+func (s *Scheduler) pickPrimaryLocked(f Family, pool []*Slot) *Slot {
+	var best *Slot
+	for _, sl := range pool {
+		if r := sl.rtt[f].Load(); r > 0 && (best == nil || r < best.rtt[f].Load()) {
+			best = sl
+		}
+	}
+	if best == nil {
+		return nil // no latency measured on any link of this pool yet
+	}
+	cur := s.primary[f]
+	if cur == nil || cur == best {
+		return best
+	}
+	inPool := false
+	for _, sl := range pool {
+		if sl == cur {
+			inPool = true
+			break
+		}
+	}
+	if !inPool {
+		return best // the old primary is gone: the fastest takes over
+	}
+	if cr := cur.rtt[f].Load(); cr == 0 || best.rtt[f].Load()*100 <= cr*(100-primarySwitchPct) {
+		return best // a clearly faster challenger takes the seat
+	}
+	return cur
+}
+
+// saturatedLocked reports whether the primary already runs at its observed capacity: new flows
+// would only queue behind the ones in progress and do better on another link. Before any
+// capacity has been measured (no throughput seen yet) the active-flow count stands in.
+// Callers hold s.mu.
+func (s *Scheduler) saturatedLocked(sl *Slot, f Family) bool {
+	if sl.peak[f] >= minMeasuredPeak {
+		return sl.rateIn[f]+sl.rateOut[f] >= saturationFrac*sl.peak[f]
+	}
+	return sl.actF[f].Load() >= minFlowsSpread
+}
+
+// lossy reports whether recent probes failed often enough on this link that its packets are
+// being dropped: it must stop attracting new flows unless it is the only path left.
+func (sl *Slot) lossy(f Family) bool { return sl.loadLoss(f) > primaryLossMax }
 
 // V6Usable reports whether any adapter can currently carry IPv6.
 func (s *Scheduler) V6Usable() bool {
@@ -399,6 +505,14 @@ func (s *Scheduler) Snapshot() []SlotStats {
 		if a.ip6 != nil {
 			st.IP6, st.State6 = a.ip6.String(), sl.state[Fam6].String()
 		}
+		st.RTT = -1
+		if us := sl.rtt[Fam4].Load(); us > 0 {
+			st.RTT = float64(us) / 1000
+		} else if us := sl.rtt[Fam6].Load(); us > 0 {
+			st.RTT = float64(us) / 1000
+		}
+		st.Loss = math.Max(sl.loadLoss(Fam4), sl.loadLoss(Fam6))
+		st.Primary = sl == s.primary[Fam4] || sl == s.primary[Fam6]
 		out = append(out, st)
 	}
 	return out

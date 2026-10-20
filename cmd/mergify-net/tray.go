@@ -9,11 +9,11 @@ import (
 	"syscall"
 	"time"
 
-	"net-merge/internal/logx"
-	"net-merge/internal/platform"
-	"net-merge/internal/state"
-	"net-merge/internal/tray"
-	"net-merge/internal/tun"
+	"mergify-net/internal/logx"
+	"mergify-net/internal/platform"
+	"mergify-net/internal/state"
+	"mergify-net/internal/tray"
+	"mergify-net/internal/tun"
 )
 
 func cmdTray(args []string) {
@@ -33,17 +33,17 @@ func cmdTray(args []string) {
 		if err := platform.RelaunchTray(child, *hidden); err != nil {
 			die(err)
 		}
-		fmt.Println("Approve the admin prompt. Look for the net-merge icon in the system tray (^ overflow arrow) or menu bar.")
+		fmt.Println("Approve the admin prompt. Look for the mergify-net icon in the system tray (^ overflow arrow) or menu bar.")
 		return
 	}
 	if !platform.SingleInstance() {
-		fmt.Println("net-merge is already running.")
+		fmt.Println("mergify-net is already running.")
 		return
 	}
 	if c.logFile == "" {
 		c.stats = 0 // nobody is watching a hidden console
 		if !platform.HasConsole() {
-			c.logFile = filepath.Join(c.stateDir, "net-merge.log") // windowless build: keep a log for diagnosis
+			c.logFile = filepath.Join(c.stateDir, "mergify-net.log") // windowless build: keep a log for diagnosis
 		}
 	}
 	if err := c.setup(); err != nil {

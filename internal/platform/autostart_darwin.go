@@ -10,9 +10,9 @@ import (
 	"strconv"
 )
 
-const agentLabel = "io.github.rohit267.net-merge"
+const agentLabel = "io.github.rohit267.mergify-net"
 
-// signInUser is the account whose sign-in starts net-merge. The tray runs as root through sudo,
+// signInUser is the account whose sign-in starts mergify-net. The tray runs as root through sudo,
 // so there it is SUDO_UID's account, not root's.
 func signInUser() (*user.User, error) {
 	if os.Geteuid() != 0 {
@@ -30,7 +30,7 @@ func agentPath(u *user.User) string {
 }
 
 // Autostart turns start-at-sign-in "on" or "off", or prints its "status". It is a LaunchAgent
-// running `sudo -n net-merge tray`, which only works once `sudo net-merge install` has added the
+// running `sudo -n mergify-net tray`, which only works once `sudo mergify-net install` has added the
 // passwordless rule; otherwise sign-in would need a password the agent can't type.
 func Autostart(action string) error {
 	if os.Geteuid() == 0 {
@@ -69,11 +69,11 @@ func Autostart(action string) error {
 	if out, err := exec.Command("/bin/launchctl", "bootstrap", domain, path).CombinedOutput(); err != nil {
 		return fmt.Errorf("launchctl bootstrap: %w: %s", err, out)
 	}
-	fmt.Println("autostart is ON: net-merge starts at sign-in (" + path + ").")
+	fmt.Println("autostart is ON: mergify-net starts at sign-in (" + path + ").")
 	return nil
 }
 
-// AutostartEnabled reports whether net-merge starts at sign-in.
+// AutostartEnabled reports whether mergify-net starts at sign-in.
 func AutostartEnabled() bool {
 	u, err := signInUser()
 	if err != nil {
@@ -103,9 +103,9 @@ func SetAutostart(on bool) error {
 		check = append([]string{"-U", u.Username}, check...) // root may always; ask about the user
 	}
 	if exec.Command("/usr/bin/sudo", check...).Run() != nil {
-		return errors.New("the tray can't start at sign-in without the passwordless rule; run once: sudo net-merge install")
+		return errors.New("the tray can't start at sign-in without the passwordless rule; run once: sudo mergify-net install")
 	}
-	log := filepath.Join(u.HomeDir, "Library", "Logs", "net-merge.log")
+	log := filepath.Join(u.HomeDir, "Library", "Logs", "mergify-net.log")
 	plist := `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>

@@ -1,5 +1,5 @@
 name: verify-repos
-# Installs net-merge for real from what is published: with install.sh / install.ps1 on every system,
+# Installs mergify-net for real from what is published: with install.sh / install.ps1 on every system,
 # and with the README's commands from the signed repositories, on x86-64 and ARM64. Runs on changes to
 # the install scripts, every Monday, and by hand (Actions > verify-repos > Run workflow) after a release.
 on:
@@ -10,7 +10,7 @@ on:
     paths: [install.sh, install.ps1, .github/workflows/verify-repos.yml]
 
 env:
-  BASE: https://rohit267.github.io/net-merge
+  BASE: https://rohit267.github.io/mergify-net
   FPR: 0168C7AB77721656904811AE904F61E7F4F1C2A1
 
 jobs:
@@ -37,19 +37,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: |
-          docker run --rm --cap-add NET_ADMIN --cap-add NET_RAW -v "$PWD:/src:ro" -e NET_MERGE_NO_START=1 \
-            -e NET_MERGE_METHOD=${{ matrix.method || 'auto' }} '${{ matrix.image }}' sh -ec '
+          docker run --rm --cap-add NET_ADMIN --cap-add NET_RAW -v "$PWD:/src:ro" -e MERGIFY_NET_NO_START=1 \
+            -e MERGIFY_NET_METHOD=${{ matrix.method || 'auto' }} '${{ matrix.image }}' sh -ec '
               ${{ matrix.prep }}
               sh /src/install.sh
               sh /src/install.sh   # again: an upgrade must work too
-              net-merge version
+              mergify-net version
               sh /src/install.sh uninstall
               # (a "!" check would never fail under sh -e, so these are tests; hash -r: forget the old path)
-              hash -r; test -z "$(command -v net-merge)"
-              test ! -e /etc/apt/sources.list.d/net-merge.list
-              test ! -e /etc/yum.repos.d/net-merge.repo
-              test -z "$(grep -ls net-merge /etc/pacman.conf /etc/apk/repositories)"
-              test -z "$(zypper lr 2>/dev/null | grep net-merge)"'
+              hash -r; test -z "$(command -v mergify-net)"
+              test ! -e /etc/apt/sources.list.d/mergify-net.list
+              test ! -e /etc/yum.repos.d/mergify-net.repo
+              test -z "$(grep -ls mergify-net /etc/pacman.conf /etc/apk/repositories)"
+              test -z "$(zypper lr 2>/dev/null | grep mergify-net)"'
 
   script-macos:
     strategy:
@@ -61,17 +61,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - env:
-          NET_MERGE_NO_START: '1'
-          NET_MERGE_METHOD: ${{ matrix.method }}
+          MERGIFY_NET_NO_START: '1'
+          MERGIFY_NET_METHOD: ${{ matrix.method }}
         run: |
           sh install.sh
-          net-merge version
-          /usr/local/bin/net-merge version
-          sudo test -f /etc/sudoers.d/net-merge
-          sudo -n -l "$(readlink -f /usr/local/bin/net-merge)" tray
+          mergify-net version
+          /usr/local/bin/mergify-net version
+          sudo test -f /etc/sudoers.d/mergify-net
+          sudo -n -l "$(readlink -f /usr/local/bin/mergify-net)" tray
           sh install.sh uninstall
-          hash -r; test -z "$(command -v net-merge)"
-          sudo test ! -e /etc/sudoers.d/net-merge
+          hash -r; test -z "$(command -v mergify-net)"
+          sudo test ! -e /etc/sudoers.d/mergify-net
 
   script-windows:
     name: install.ps1 Windows
@@ -80,13 +80,13 @@ jobs:
       - uses: actions/checkout@v4
       - shell: pwsh
         run: |
-          $env:NET_MERGE_NO_START = '1'
+          $env:MERGIFY_NET_NO_START = '1'
           ./install.ps1
-          & "$env:ProgramFiles\net-merge\net-merge.exe" version
+          & "$env:ProgramFiles\mergify-net\mergify-net.exe" version
           # the README's uninstall line
-          & "$env:ProgramFiles\net-merge\net-merge.exe" quit; Start-Process "$env:ProgramFiles\net-merge\unins000.exe" '/SILENT' -Verb RunAs -Wait
-          for ($i = 0; $i -lt 30 -and (Test-Path "$env:ProgramFiles\net-merge\net-merge.exe"); $i++) { Start-Sleep 1 }
-          if (Test-Path "$env:ProgramFiles\net-merge\net-merge.exe") { throw 'net-merge is still installed' }
+          & "$env:ProgramFiles\mergify-net\mergify-net.exe" quit; Start-Process "$env:ProgramFiles\mergify-net\unins000.exe" '/SILENT' -Verb RunAs -Wait
+          for ($i = 0; $i -lt 30 -and (Test-Path "$env:ProgramFiles\mergify-net\mergify-net.exe"); $i++) { Start-Sleep 1 }
+          if (Test-Path "$env:ProgramFiles\mergify-net\mergify-net.exe") { throw 'mergify-net is still installed' }
 
   # the README's own commands, one system at a time
   readme-commands:
@@ -108,31 +108,31 @@ jobs:
     name: README ${{ matrix.distro }} (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     steps:
-      - name: Install net-merge
+      - name: Install mergify-net
         run: |
           case '${{ matrix.family }}' in
             apt) script='
               apt-get update -qq && apt-get install -y -qq curl ca-certificates sudo >/dev/null
-              curl -fsSL $BASE/apt/key.gpg | sudo tee /usr/share/keyrings/net-merge.gpg >/dev/null
-              echo "deb [signed-by=/usr/share/keyrings/net-merge.gpg] $BASE/apt stable main" | sudo tee /etc/apt/sources.list.d/net-merge.list
-              sudo apt update && sudo apt install -y net-merge' ;;
+              curl -fsSL $BASE/apt/key.gpg | sudo tee /usr/share/keyrings/mergify-net.gpg >/dev/null
+              echo "deb [signed-by=/usr/share/keyrings/mergify-net.gpg] $BASE/apt stable main" | sudo tee /etc/apt/sources.list.d/mergify-net.list
+              sudo apt update && sudo apt install -y mergify-net' ;;
             dnf) script='
               dnf install -y sudo >/dev/null
-              sudo curl -fsSL -o /etc/yum.repos.d/net-merge.repo $BASE/rpm/net-merge.repo && sudo dnf install -y net-merge' ;;
+              sudo curl -fsSL -o /etc/yum.repos.d/mergify-net.repo $BASE/rpm/mergify-net.repo && sudo dnf install -y mergify-net' ;;
             zypper) script='
               zypper --non-interactive install sudo >/dev/null
-              sudo zypper addrepo $BASE/rpm/net-merge.repo && sudo zypper --gpg-auto-import-keys install -y net-merge' ;;
+              sudo zypper addrepo $BASE/rpm/mergify-net.repo && sudo zypper --gpg-auto-import-keys install -y mergify-net' ;;
             apk) script='
               apk add --no-cache sudo >/dev/null
-              sudo wget -O /etc/apk/keys/net-merge.rsa.pub $BASE/apk/net-merge.rsa.pub
-              echo $BASE/apk | sudo tee -a /etc/apk/repositories && sudo apk add net-merge' ;;
+              sudo wget -O /etc/apk/keys/mergify-net.rsa.pub $BASE/apk/mergify-net.rsa.pub
+              echo $BASE/apk | sudo tee -a /etc/apk/repositories && sudo apk add mergify-net' ;;
             pacman) script='
               pacman-key --init
               curl -fsSL $BASE/apt/key.asc | pacman-key --add - && pacman-key --lsign-key $FPR
-              printf "\n[net-merge]\nSigLevel = Required\nServer = $BASE/arch/\$arch\n" >> /etc/pacman.conf
-              pacman --disable-sandbox -Sy --noconfirm net-merge' ;;
+              printf "\n[mergify-net]\nSigLevel = Required\nServer = $BASE/arch/\$arch\n" >> /etc/pacman.conf
+              pacman --disable-sandbox -Sy --noconfirm mergify-net' ;;
           esac
           docker run --rm --cap-add NET_ADMIN --cap-add NET_RAW -e BASE -e FPR '${{ matrix.image }}' sh -ec "
             $script
-            net-merge version
-            test -f /usr/share/applications/io.github.rohit267.net-merge.desktop"
+            mergify-net version
+            test -f /usr/share/applications/io.github.rohit267.mergify-net.desktop"

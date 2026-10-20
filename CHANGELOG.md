@@ -5,15 +5,21 @@ entry here before pushing a version tag.
 
 ## [Unreleased]
 
+### Changed
+- **Rebranded as Mergify-Net.** The project, Go module (`mergify-net`), binary, state directories and
+  Android app (`com.mergify.net`, AAR `mergify.aar`) now carry the Mergify-Net name everywhere. The
+  Android app aggregates Wi-Fi and cellular (4G/5G) links through a local VpnService, with a
+  lowest-latency primary policy (see the README's Android section).
+
 ## [0.3.3] - 2026-10-20
 
 ### Added
 - **Start at sign-in from the tray menu** on Windows, macOS and Linux (#28): tick *Start at sign-in*. It
-  does what `net-merge autostart on` does, without a terminal. On a Mac it needs `sudo net-merge install` once,
+  does what `mergify-net autostart on` does, without a terminal. On a Mac it needs `sudo mergify-net install` once,
   as before.
 
 ### Fixed
-- **Windows: fewer antivirus false positives.** `net-merge.exe` and `net-merge-tray.exe` now carry a
+- **Windows: fewer antivirus false positives.** `mergify-net.exe` and `mergify-net-tray.exe` now carry a
   name, version, icon and manifest. Bare unsigned Go programs are what antivirus machine-learning models
   flag (Microsoft Defender's `Trojan:Win32/Wacatac.B!ml` on VirusTotal).
 
@@ -26,41 +32,41 @@ entry here before pushing a version tag.
 ## [0.3.1] - 2026-10-19
 
 ### Added
-- **One-line install.** `curl -fsSL https://raw.githubusercontent.com/rohit267/net-merge/main/install.sh | sh` on
+- **One-line install.** `curl -fsSL https://raw.githubusercontent.com/rohit267/mergify-net/main/install.sh | sh` on
   macOS and Linux (it uses Homebrew, apt, dnf, zypper, apk or pacman when it can, the release tarball
-  otherwise, and starts the tray), and `irm https://raw.githubusercontent.com/rohit267/net-merge/main/install.ps1 | iex`
+  otherwise, and starts the tray), and `irm https://raw.githubusercontent.com/rohit267/mergify-net/main/install.ps1 | iex`
   in PowerShell on Windows.
-- Releases also carry the downloads under names without the version (`net-merge-setup.exe`,
-  `net-merge-macos-universal.tar.gz`, `net-merge-linux-$(uname -m).tar.gz`), so
+- Releases also carry the downloads under names without the version (`mergify-net-setup.exe`,
+  `mergify-net-macos-universal.tar.gz`, `mergify-net-linux-$(uname -m).tar.gz`), so
   `releases/latest/download/...` links always give the newest one.
-- **One-line uninstall** on macOS and Linux: `curl -fsSL https://raw.githubusercontent.com/rohit267/net-merge/main/install.sh | sh -s -- uninstall`
-  stops net-merge and removes it the way it was installed, with its repository and key. The README has the
+- **One-line uninstall** on macOS and Linux: `curl -fsSL https://raw.githubusercontent.com/rohit267/mergify-net/main/install.sh | sh -s -- uninstall`
+  stops mergify-net and removes it the way it was installed, with its repository and key. The README has the
   Windows line and every manual way.
 
 ### Fixed
 - **macOS: the wired Ethernet disappeared when an Android phone was connected through TetherKit** (#20).
   When the phone became the primary connection, macOS could not add its own route for the Ethernet next
-  to net-merge's, and net-merge then removed its route, leaving the Ethernet with none until the cable was
-  plugged in again. net-merge now leaves that route to macOS.
+  to mergify-net's, and mergify-net then removed its route, leaving the Ethernet with none until the cable was
+  plugged in again. mergify-net now leaves that route to macOS.
 - **Windows: turning on merging could stop all internet, with every adapter showing "no internet"**
   (#10). On an adapter with *weak host send* or *forwarding* turned on, which Mobile Hotspot, Internet
   Connection Sharing, Hyper-V and some VPNs do, Windows ignores the adapter a connection is pinned to, so
-  net-merge's own connections went back into its virtual adapter. While merging, net-merge now turns those
+  mergify-net's own connections went back into its virtual adapter. While merging, mergify-net now turns those
   two settings off on the adapters it uses and puts them back afterwards (sharing that connection pauses
   meanwhile). It also re-applies its virtual adapter's address when Windows drops it right after start.
-- `sudo net-merge install` refused on Macs where `/usr/local/bin` is writable by your user (Intel Macs
-  with Homebrew). It now puts its root-owned copy in `/opt/net-merge/bin` there, and links `net-merge` into
+- `sudo mergify-net install` refused on Macs where `/usr/local/bin` is writable by your user (Intel Macs
+  with Homebrew). It now puts its root-owned copy in `/opt/mergify-net/bin` there, and links `mergify-net` into
   `/usr/local/bin`.
 
 ## [0.3.0] - 2026-10-17
 
 ### Added
-- **net-merge as a normal package on every Linux distribution.** Releases now include a `.deb`, `.rpm`,
+- **mergify-net as a normal package on every Linux distribution.** Releases now include a `.deb`, `.rpm`,
   `.apk` (Alpine) and Arch package for every CPU: x86-64, ARM64, ARMv7, ARMv6 (Raspberry Pi), x86 32-bit,
   RISC-V, PowerPC (ppc64le), s390x and LoongArch, plus a tarball for each. They are also published as signed
-  repositories on GitHub Pages, so `sudo apt install net-merge`, `sudo dnf install net-merge`,
-  `sudo zypper install net-merge`, `sudo apk add net-merge` and `sudo pacman -S net-merge` work after a
-  one-time setup. The packages give net-merge its network rights themselves, and add an app-menu entry,
+  repositories on GitHub Pages, so `sudo apt install mergify-net`, `sudo dnf install mergify-net`,
+  `sudo zypper install mergify-net`, `sudo apk add mergify-net` and `sudo pacman -S mergify-net` work after a
+  one-time setup. The packages give mergify-net its network rights themselves, and add an app-menu entry,
   icons and AppStream information.
 - **Pauses by itself when only one connection works, and resumes when two do.** With fewer than two
   connections that reach the internet there is nothing to merge, so the tray pauses merging ("Paused: one
@@ -68,7 +74,7 @@ entry here before pushing a version tag.
   and it waits for things to settle first: 10 seconds with nothing moving (2 minutes if a download or
   upload is still going) before pausing, 3 seconds before resuming, and at least 30 seconds between
   automatic switches.
-  Untick *Pause when there is only one connection* in the tray menu, or run `net-merge tray -auto-pause=false`.
+  Untick *Pause when there is only one connection* in the tray menu, or run `mergify-net tray -auto-pause=false`.
 
 ### Changed
 - On macOS, pausing and resuming no longer removes and recreates the virtual adapter, so it no longer
@@ -78,38 +84,38 @@ entry here before pushing a version tag.
 ## [0.2.0] - 2026-10-16
 
 ### Added
-- **Downloads for macOS and Linux.** Each release now also has `net-merge-X.Y.Z-macos-universal.tar.gz`
-  (Apple Silicon and Intel) and `net-merge-X.Y.Z-linux-x86_64.tar.gz` / `-linux-aarch64.tar.gz`. The steps
+- **Downloads for macOS and Linux.** Each release now also has `mergify-net-X.Y.Z-macos-universal.tar.gz`
+  (Apple Silicon and Intel) and `mergify-net-X.Y.Z-linux-x86_64.tar.gz` / `-linux-aarch64.tar.gz`. The steps
   to run them are in the README.
 - **macOS support** (Apple Silicon and Intel). System-wide mode, the menu-bar tray, the SOCKS5 proxy, live
   per-adapter speeds and start at login (a LaunchAgent) all work. The TUN is a utun, flows are pinned with
   `IP_BOUND_IF` plus a scoped default route per adapter, and adapters come from the routing table. iPhone
-  hotspot over USB works as is; Android USB tethering needs the TetherKit app. `sudo net-merge install`
-  sets up a passwordless rule for `net-merge tray`.
+  hotspot over USB works as is; Android USB tethering needs the TetherKit app. `sudo mergify-net install`
+  sets up a passwordless rule for `mergify-net tray`.
 - **Linux support**, including NixOS. System-wide mode, the tray icon (any desktop with
   StatusNotifierItem support: KDE, GNOME with the AppIndicator extension, XFCE, Cinnamon, ...), the
   SOCKS5 proxy, live per-adapter speeds and autostart (XDG autostart entry) all work. The TUN and
   its routes are set up over netlink, flows are pinned with `SO_BINDTOIFINDEX`, and adapters are
   detected from sysfs and the routing tables. Needs root or `CAP_NET_ADMIN` (`setcap`).
-- **Nix flake** with a package and a NixOS module: `programs.net-merge.enable` installs a capability
-  wrapper so the tray runs without root, and `programs.net-merge.autostart` starts it in every
+- **Nix flake** with a package and a NixOS module: `programs.mergify-net.enable` installs a capability
+  wrapper so the tray runs without root, and `programs.mergify-net.autostart` starts it in every
   graphical session.
 
 ### Changed
 - Clicking the tray icon no longer turns merging on or off (it was easy to hit by accident). Open the
   menu (right-click) and choose *Pause merging* / *Start merging*.
-- The source is split into packages: `cmd/net-merge` (the command) and `internal/...` (engine, nics,
-  tun, tray, platform, state, icon, logx). Build with `go build ./cmd/net-merge`.
+- The source is split into packages: `cmd/mergify-net` (the command) and `internal/...` (engine, nics,
+  tun, tray, platform, state, icon, logx). Build with `go build ./cmd/mergify-net`.
 
 ## [0.1.1] - 2026-10-14
 
 ### Added
 - **Speeds on hover.** Hovering the tray icon shows each adapter's download/upload speed and a Total
   line. The numbers come from Windows' own adapter counters, so every app counts, including apps that
-  bypass net-merge (qBittorrent binds to adapters directly), and they show while paused too.
+  bypass mergify-net (qBittorrent binds to adapters directly), and they show while paused too.
 - **Real speeds in the menu.** The right-click menu shows each adapter's speed, how many connections
-  net-merge put on it, and whether it has IPv6.
-- `net-merge status` shows each adapter's total traffic ("link") next to the part net-merge relayed.
+  mergify-net put on it, and whether it has IPv6.
+- `mergify-net status` shows each adapter's total traffic ("link") next to the part mergify-net relayed.
 - `-mtu` flag to change the virtual adapter's MTU (default 9000).
 - `-pprof` flag to serve Go's profiler on a localhost address, for diagnosing CPU use.
 - README: screenshots, features and how to use.
@@ -145,7 +151,7 @@ First release.
 - Tray app: left-click turns it on or off, right-click shows per-adapter speeds, optional start at
   sign-in without a UAC prompt.
 - Automatic adapter detection: real hardware with a default gateway is used, while VPN and virtual adapters
-  (Tailscale, WireGuard, Hyper-V, WSL) are skipped; `net-merge list` shows why.
+  (Tailscale, WireGuard, Hyper-V, WSL) are skipped; `mergify-net list` shows why.
 - Per-adapter internet checks: a link without internet gets no connections until it recovers.
 - Connections are spread by each adapter's measured speed, separately for IPv4 and IPv6.
 - IPv6 policy (`-ipv6 auto|on|off`): when only some adapters have IPv6, apps are steered to IPv4 so

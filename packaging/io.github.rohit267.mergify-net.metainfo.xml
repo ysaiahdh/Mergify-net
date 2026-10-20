@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
-  <id>io.github.rohit267.net-merge</id>
-  <name>net-merge</name>
+  <id>io.github.rohit267.mergify-net</id>
+  <name>mergify-net</name>
   <summary>Use all your internet connections at the same time</summary>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>MIT</project_license>
@@ -10,7 +10,7 @@
   </developer>
   <description>
     <p>
-      net-merge uses all your network adapters together: Wi-Fi, Ethernet, USB tethering and phone hotspots.
+      mergify-net uses all your network adapters together: Wi-Fi, Ethernet, USB tethering and phone hotspots.
       Downloads, games and browsers get the speed of every connection added up.
     </p>
     <p>
@@ -27,9 +27,9 @@
       extension, which Ubuntu already includes.
     </p>
   </description>
-  <launchable type="desktop-id">io.github.rohit267.net-merge.desktop</launchable>
+  <launchable type="desktop-id">io.github.rohit267.mergify-net.desktop</launchable>
   <provides>
-    <binary>net-merge</binary>
+    <binary>mergify-net</binary>
   </provides>
   <keywords>
     <keyword>network</keyword>
@@ -38,13 +38,13 @@
     <keyword>wifi</keyword>
     <keyword>load balancing</keyword>
   </keywords>
-  <url type="homepage">https://github.com/rohit267/net-merge</url>
-  <url type="bugtracker">https://github.com/rohit267/net-merge/issues</url>
+  <url type="homepage">https://github.com/rohit267/mergify-net</url>
+  <url type="bugtracker">https://github.com/rohit267/mergify-net/issues</url>
   <url type="donation">https://buymeacoffee.com/rohit267</url>
   <screenshots>
     <screenshot type="default">
       <caption>The tray menu shows each connection's speed and how many connections it carries</caption>
-      <image>https://raw.githubusercontent.com/rohit267/net-merge/main/docs/tray-menu.png</image>
+      <image>https://raw.githubusercontent.com/rohit267/mergify-net/main/docs/tray-menu.png</image>
     </screenshot>
   </screenshots>
   <content_rating type="oars-1.1"/>

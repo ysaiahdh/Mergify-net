@@ -15,18 +15,26 @@ import (
 	"golang.org/x/sys/windows"
 	wun "golang.zx2c4.com/wireguard/tun"
 
-	"net-merge/internal/logx"
-	"net-merge/internal/nics"
+	"github.com/xjasonlyu/tun2socks/v2/core/device"
+	t2stun "github.com/xjasonlyu/tun2socks/v2/core/device/tun"
+
+	"mergify-net/internal/logx"
+	"mergify-net/internal/nics"
 )
 
-const openHint = "needs admin and wintun.dll next to net-merge.exe"
+const openHint = "needs admin and wintun.dll next to mergify-net.exe"
+
+// openDevice opens the Wintun adapter and returns the link endpoint reading/writing its packets.
+func (t *Tun) openDevice() (device.Device, error) {
+	return t2stun.Open(openName, uint32(t.MTU))
+}
 
 // routes4 as `route` wants them: destination and mask.
 var routes4win = [][2]string{{"0.0.0.0", "128.0.0.0"}, {"128.0.0.0", "128.0.0.0"}}
 
 func init() {
 	staleHook = restoreStrongHost
-	wun.WintunTunnelType = "net-merge"
+	wun.WintunTunnelType = "mergify-net"
 	// A fixed GUID keeps one Windows network profile instead of a new "Unidentified network" per run.
 	if g, err := windows.GUIDFromString("{3f0d5a7e-9b1c-4e52-8a47-1c6b2d9e5f30}"); err == nil {
 		wun.WintunStaticRequestedGUID = &g
@@ -142,7 +150,7 @@ var strongHost struct {
 	stop    chan struct{}
 }
 
-var strongHostFile = filepath.Join(os.TempDir(), "net-merge-weakhost.txt")
+var strongHostFile = filepath.Join(os.TempDir(), "mergify-net-weakhost.txt")
 
 func startStrongHost(tunIdx int) {
 	stop := make(chan struct{})
@@ -210,7 +218,7 @@ func syncStrongHost(stop chan struct{}) {
 		strongHost.restore = append(strongHost.restore, fmt.Sprintf("%s %s weakhostsend=%s forwarding=%s",
 			fam, f[1], strings.ToLower(f[2]), strings.ToLower(f[3])))
 		logx.Printf("note: turned off weak host send and forwarding on adapter %s (%s) while merging; "+
-			"Windows ignores pinned connections there. Sharing its connection (Mobile Hotspot) pauses until net-merge is off.\n", f[1], f[0])
+			"Windows ignores pinned connections there. Sharing its connection (Mobile Hotspot) pauses until mergify-net is off.\n", f[1], f[0])
 	}
 	os.WriteFile(strongHostFile, []byte(strings.Join(strongHost.restore, "\n")), 0o600)
 }

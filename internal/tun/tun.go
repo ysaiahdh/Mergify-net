@@ -13,18 +13,17 @@ import (
 
 	"github.com/xjasonlyu/tun2socks/v2/core"
 	"github.com/xjasonlyu/tun2socks/v2/core/device"
-	"github.com/xjasonlyu/tun2socks/v2/core/device/tun"
 	"github.com/xjasonlyu/tun2socks/v2/core/option"
 	tlog "github.com/xjasonlyu/tun2socks/v2/log"
 	M "github.com/xjasonlyu/tun2socks/v2/metadata"
 	"github.com/xjasonlyu/tun2socks/v2/proxy/reject"
 	"github.com/xjasonlyu/tun2socks/v2/tunnel"
 
-	"net-merge/internal/engine"
+	"mergify-net/internal/engine"
 )
 
 const (
-	tunName = "net-merge"
+	tunName = "mergify-net"
 	tunIP   = "198.18.0.1"
 	tunMask = "255.255.255.0"
 	// A ULA on purpose. The OS's source-address policy (RFC 6724, on Windows and in glibc) prefers
@@ -71,11 +70,17 @@ type Tun struct {
 	mu  sync.Mutex
 	B   *engine.Balancer // set before On
 	MTU int              // set before On; see DefaultMTU
+	fd  int              // externally-created TUN fd (UseFd); -1 = open the adapter ourselves
 	dev device.Device
 	stk *stack.Stack
 	idx int
 	on  bool
 }
+
+// UseFd makes the TUN run on a file descriptor the platform already created — on Android the
+// one from VpnService.Builder.establish().detachFd(), since /dev/net/tun can't be opened there
+// without root. Call it before On; mergify-net then owns the fd and closes it on Close.
+func (t *Tun) UseFd(fd int) { t.fd = fd }
 
 // DefaultMTU is the TUN's MTU, used both by the userland stack and by the OS. TUN traffic never
 // leaves the machine (flows are re-dialed with normal sockets), so it isn't bound by the links'
@@ -89,7 +94,7 @@ const DefaultMTU = 9000
 // ~25s keepalives common in VPN and NAT-traversal protocols.
 const udpSessionTimeout = 30 * time.Second
 
-func New(b *engine.Balancer) *Tun { return &Tun{B: b, MTU: DefaultMTU} }
+func New(b *engine.Balancer) *Tun { return &Tun{B: b, MTU: DefaultMTU, fd: -1} }
 
 func (t *Tun) IsOn() bool {
 	t.mu.Lock()
@@ -112,7 +117,7 @@ func (t *Tun) open() error {
 	tunnel.T().SetUDPTimeout(udpSessionTimeout)
 	CleanupStale()
 
-	dev, err := tun.Open(openName, uint32(t.MTU))
+	dev, err := t.openDevice()
 	if err != nil {
 		return fmt.Errorf("open TUN (%s): %w", openHint, err)
 	}
@@ -207,7 +212,7 @@ func (t *Tun) teardown() {
 	t.dev, t.stk, t.idx, t.on = nil, nil, 0, false
 }
 
-// CleanupStale removes routes left on a surviving net-merge adapter (e.g. after a crash).
+// CleanupStale removes routes left on a surviving mergify-net adapter (e.g. after a crash).
 func CleanupStale() {
 	if staleHook != nil {
 		staleHook()

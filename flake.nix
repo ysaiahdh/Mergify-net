@@ -1,5 +1,5 @@
 {
-  description = "net-merge: use all your network adapters at once";
+  description = "mergify-net: use all your network adapters at once";
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
@@ -15,13 +15,13 @@
     in
     {
       packages = forAllSystems (pkgs: rec {
-        net-merge = pkgs.callPackage ./nix/package.nix { inherit version; };
-        default = net-merge;
+        mergify-net = pkgs.callPackage ./nix/package.nix { inherit version; };
+        default = mergify-net;
       });
 
       nixosModules = rec {
-        net-merge = import ./nix/module.nix self;
-        default = net-merge;
+        mergify-net = import ./nix/module.nix self;
+        default = mergify-net;
       };
 
       devShells = forAllSystems (pkgs: {

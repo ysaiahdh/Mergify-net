@@ -9,20 +9,20 @@ import (
 )
 
 // autostartFile is an XDG autostart entry, honoured by GNOME, KDE, XFCE, Cinnamon, LXQt and others
-// at sign-in. On NixOS the module's programs.net-merge.autostart (a systemd user service) is an
+// at sign-in. On NixOS the module's programs.mergify-net.autostart (a systemd user service) is an
 // alternative that doesn't depend on the desktop.
 func autostartFile() (string, error) {
 	dir, err := os.UserConfigDir()
 	if err != nil {
 		return "", err
 	}
-	return filepath.Join(dir, "autostart", "net-merge.desktop"), nil
+	return filepath.Join(dir, "autostart", "mergify-net.desktop"), nil
 }
 
-// trayExe prefers net-merge on PATH: on NixOS that is the capability wrapper in /run/wrappers/bin,
+// trayExe prefers mergify-net on PATH: on NixOS that is the capability wrapper in /run/wrappers/bin,
 // while os.Executable is the store path, which doesn't carry the capabilities.
 func trayExe() string {
-	if p, err := exec.LookPath("net-merge"); err == nil {
+	if p, err := exec.LookPath("mergify-net"); err == nil {
 		if abs, err := filepath.Abs(p); err == nil {
 			return abs
 		}
@@ -67,14 +67,14 @@ func Autostart(action string) error {
 	if err := SetAutostart(true); err != nil {
 		return err
 	}
-	fmt.Println("autostart is ON: net-merge starts at sign-in (" + path + ").")
+	fmt.Println("autostart is ON: mergify-net starts at sign-in (" + path + ").")
 	if !IsAdmin() {
-		fmt.Println("note: the tray needs CAP_NET_ADMIN to start merging; see `net-merge tray` or the README.")
+		fmt.Println("note: the tray needs CAP_NET_ADMIN to start merging; see `mergify-net tray` or the README.")
 	}
 	return nil
 }
 
-// AutostartEnabled reports whether net-merge starts at sign-in.
+// AutostartEnabled reports whether mergify-net starts at sign-in.
 func AutostartEnabled() bool {
 	path, err := autostartFile()
 	if err != nil {
@@ -102,7 +102,7 @@ func SetAutostart(on bool) error {
 	}
 	entry := "[Desktop Entry]\n" +
 		"Type=Application\n" +
-		"Name=net-merge\n" +
+		"Name=mergify-net\n" +
 		"Comment=Use all your network adapters at once\n" +
 		"Exec=" + desktopQuote(trayExe()) + " tray\n" +
 		"Terminal=false\n" +

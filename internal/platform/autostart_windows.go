@@ -11,12 +11,12 @@ import (
 	"golang.org/x/sys/windows"
 )
 
-const taskName = "net-merge"
+const taskName = "mergify-net"
 
 // trayExe prefers the windowless tray build installed next to this exe.
 func trayExe() string {
 	exe, _ := os.Executable()
-	gui := filepath.Join(filepath.Dir(exe), "net-merge-tray.exe")
+	gui := filepath.Join(filepath.Dir(exe), "mergify-net-tray.exe")
 	if _, err := os.Stat(gui); err == nil {
 		return gui
 	}
@@ -33,7 +33,7 @@ func xmlEscape(s string) string {
 func taskXML(user, exe string) string {
 	return `<?xml version="1.0" encoding="UTF-16"?>
 <Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
-  <RegistrationInfo><Description>Starts net-merge (multi-adapter connection balancer) at sign-in.</Description></RegistrationInfo>
+  <RegistrationInfo><Description>Starts mergify-net (multi-adapter connection balancer) at sign-in.</Description></RegistrationInfo>
   <Triggers><LogonTrigger><Enabled>true</Enabled><UserId>` + xmlEscape(user) + `</UserId><Delay>PT10S</Delay></LogonTrigger></Triggers>
   <Principals><Principal id="Author"><UserId>` + xmlEscape(user) + `</UserId><LogonType>InteractiveToken</LogonType><RunLevel>HighestAvailable</RunLevel></Principal></Principals>
   <Settings>
@@ -87,11 +87,11 @@ func Autostart(action string) error {
 	if err := SetAutostart(true); err != nil {
 		return err
 	}
-	fmt.Println("autostart is ON: net-merge starts at sign-in without a UAC prompt.")
+	fmt.Println("autostart is ON: mergify-net starts at sign-in without a UAC prompt.")
 	return nil
 }
 
-// AutostartEnabled reports whether net-merge starts at sign-in.
+// AutostartEnabled reports whether mergify-net starts at sign-in.
 func AutostartEnabled() bool { return run("schtasks", "/Query", "/TN", taskName) == nil }
 
 // SetAutostart adds or removes the sign-in task. It needs admin, which the tray has.
@@ -106,7 +106,7 @@ func SetAutostart(on bool) error {
 	if d := os.Getenv("USERDOMAIN"); d != "" {
 		user = d + `\` + user
 	}
-	tmp := filepath.Join(os.TempDir(), "net-merge-task.xml")
+	tmp := filepath.Join(os.TempDir(), "mergify-net-task.xml")
 	if err := os.WriteFile(tmp, utf16le(taskXML(user, trayExe())), 0o600); err != nil {
 		return err
 	}
@@ -123,6 +123,6 @@ func HasConsole() bool {
 // ShowError is how the windowless build reports a fatal error: there is no console to print to.
 func ShowError(msg string) {
 	t, _ := windows.UTF16PtrFromString(msg)
-	c, _ := windows.UTF16PtrFromString("net-merge")
+	c, _ := windows.UTF16PtrFromString("mergify-net")
 	windows.MessageBox(0, t, c, windows.MB_OK|windows.MB_ICONERROR)
 }

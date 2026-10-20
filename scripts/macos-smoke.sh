@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # Smoke test of system-wide mode on macOS (CI runs it on macos-latest). Needs sudo and internet
 # access. The runner has one NIC, so this checks the TUN, routes, relaying, off and crash safety,
-# not balancing (that needs a second uplink: plug in a tether and watch `net-merge status`).
+# not balancing (that needs a second uplink: plug in a tether and watch `mergify-net status`).
 #
-# usage: scripts/macos-smoke.sh ./net-merge
+# usage: scripts/macos-smoke.sh ./mergify-net
 set -uo pipefail
-BIN=$(cd "$(dirname "${1:-./net-merge}")" && pwd)/$(basename "${1:-./net-merge}")
-STATE=/tmp/net-merge-smoke
+BIN=$(cd "$(dirname "${1:-./mergify-net}")" && pwd)/$(basename "${1:-./mergify-net}")
+STATE=/tmp/mergify-net-smoke
 fails=0
 pass() { echo "PASS  $*"; }
 fail() { echo "FAIL  $*"; fails=$((fails + 1)); }
@@ -14,7 +14,7 @@ fail() { echo "FAIL  $*"; fails=$((fails + 1)); }
 cleanup() { sudo pkill -f "$BIN run" 2>/dev/null; sudo "$BIN" cleanup >/dev/null 2>&1; }
 trap cleanup EXIT
 
-wait_on() { # wait until `net-merge status` reports ON
+wait_on() { # wait until `mergify-net status` reports ON
     for _ in $(seq 1 40); do
         "$BIN" status -state-dir "$STATE" 2>/dev/null | grep -q 'is ON' && return 0
         sleep 0.5
@@ -31,7 +31,7 @@ echo "== adapters"
 
 echo "== system-wide ON"
 sudo "$BIN" run -state-dir "$STATE" -log "$STATE.log" -stats 0 -for 150s &
-wait_on && pass "net-merge turned on" || { fail "net-merge did not turn on"; cat "$STATE.log"; exit 1; }
+wait_on && pass "mergify-net turned on" || { fail "mergify-net did not turn on"; cat "$STATE.log"; exit 1; }
 sleep 4 # let the internet probes finish
 "$BIN" status -state-dir "$STATE"
 
@@ -40,11 +40,11 @@ tun=$(ifconfig -l | tr ' ' '\n' | grep '^utun' | while read -r i; do ifconfig "$
 [ -n "$tun" ] && pass "utun $tun has 198.18.0.1" || fail "no utun with 198.18.0.1"
 mtu=$(ifconfig "$tun" 2>/dev/null | sed -n 's/.*mtu \([0-9]*\).*/\1/p')
 [ "$mtu" = 9000 ] && pass "TUN MTU is 9000" || fail "TUN MTU is $mtu, want 9000"
-[ "$(http)" = 200 ] && pass "HTTPS works through net-merge" || fail "HTTPS through net-merge failed"
+[ "$(http)" = 200 ] && pass "HTTPS works through mergify-net" || fail "HTTPS through mergify-net failed"
 dig +short +time=3 +tries=1 @1.1.1.1 example.com | grep -qE '^[0-9.]+$' &&
-    pass "UDP DNS to 1.1.1.1 works through net-merge" || fail "UDP DNS through net-merge failed"
-relayed=$(jq '[.NICs[].Total] | add' /var/run/net-merge/status.json 2>/dev/null || jq '[.NICs[].Total] | add' "$STATE/status.json")
-[ "${relayed:-0}" -ge 1 ] && pass "flows were relayed by net-merge ($relayed)" || fail "no flow went through net-merge"
+    pass "UDP DNS to 1.1.1.1 works through mergify-net" || fail "UDP DNS through mergify-net failed"
+relayed=$(jq '[.NICs[].Total] | add' /var/run/mergify-net/status.json 2>/dev/null || jq '[.NICs[].Total] | add' "$STATE/status.json")
+[ "${relayed:-0}" -ge 1 ] && pass "flows were relayed by mergify-net ($relayed)" || fail "no flow went through mergify-net"
 
 # What macOS does when a tether becomes the primary service: the old primary loses its unscoped
 # default and gets a scoped one, which ours already is. It must survive the next sync (#20).
@@ -54,13 +54,13 @@ sudo route -q -n delete default "$gw"
 sleep 5 # more than one 3 s sync
 netstat -rn -f inet | grep -E "^default .*I.* $nic" >/dev/null &&
     pass "$nic keeps a scoped default after it stops being primary" || fail "$nic lost its default route when it stopped being primary"
-[ "$(http)" = 200 ] && pass "HTTPS still works through net-merge" || fail "HTTPS through net-merge failed after the handover"
-# and back: macOS replaces the scoped default with an unscoped one, net-merge adds its own again
+[ "$(http)" = 200 ] && pass "HTTPS still works through mergify-net" || fail "HTTPS through mergify-net failed after the handover"
+# and back: macOS replaces the scoped default with an unscoped one, mergify-net adds its own again
 sudo route -q -n delete default "$gw" -ifscope "$nic"
 sudo route -q -n add default "$gw"
 sleep 5
 netstat -rn -f inet | grep -E "^default .*I.* $nic" >/dev/null &&
-    pass "net-merge scoped $nic again once it was primary again" || fail "no scoped default on $nic after it became primary again"
+    pass "mergify-net scoped $nic again once it was primary again" || fail "no scoped default on $nic after it became primary again"
 
 echo "== off: adapter, routes and scoped defaults go away, internet still works"
 "$BIN" off -state-dir "$STATE"
@@ -82,17 +82,17 @@ sudo "$BIN" cleanup >/dev/null
 [ "$(scoped_defaults)" = 0 ] && pass "cleanup removed the leftover scoped defaults" || fail "scoped defaults left after cleanup"
 
 # The runner's /usr/local/bin is writable by its user, like an Intel Mac with Homebrew, so this takes
-# the /opt/net-merge/bin path.
+# the /opt/mergify-net/bin path.
 echo "== install: a root-owned copy and the passwordless rule, then uninstall"
 if sudo "$BIN" install; then
-    exe=$(readlink -f /usr/local/bin/net-merge)
+    exe=$(readlink -f /usr/local/bin/mergify-net)
     sudo -n -l "$exe" tray >/dev/null && pass "passwordless rule for $exe tray" || fail "no passwordless rule for $exe tray"
     [ "$(stat -f %u "$exe")" = 0 ] && pass "the installed copy is owned by root" || fail "the installed copy is not owned by root"
     sudo "$BIN" uninstall >/dev/null
-    [ ! -e /etc/sudoers.d/net-merge ] && [ ! -e /opt/net-merge ] && [ ! -L /usr/local/bin/net-merge ] &&
+    [ ! -e /etc/sudoers.d/mergify-net ] && [ ! -e /opt/mergify-net ] && [ ! -L /usr/local/bin/mergify-net ] &&
         pass "uninstall removed the rule and the copy" || fail "uninstall left files behind"
 else
-    fail "sudo net-merge install failed"
+    fail "sudo mergify-net install failed"
 fi
 
 echo

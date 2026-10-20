@@ -7,7 +7,7 @@ import (
 	"runtime"
 	"time"
 
-	"net-merge/internal/engine"
+	"mergify-net/internal/engine"
 )
 
 // The elevated process can't be signalled from a normal shell, so control goes through files in
@@ -27,13 +27,13 @@ func DefaultDir() string {
 	// The macOS tray runs as root but is commanded by the user, so its state can't live in a
 	// user-owned directory (root would follow a planted symlink): a fixed root-owned path.
 	if runtime.GOOS == "darwin" {
-		return "/var/run/net-merge"
+		return "/var/run/mergify-net"
 	}
 	base, err := os.UserCacheDir()
 	if err != nil {
 		base = os.TempDir()
 	}
-	return filepath.Join(base, "net-merge")
+	return filepath.Join(base, "mergify-net")
 }
 
 // Prepare creates the state dir, with markers going in a sticky world-writable ctl/ inside it, so

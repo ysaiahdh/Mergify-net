@@ -6,7 +6,7 @@ import (
 	"net/http"
 	_ "net/http/pprof" // registers /debug/pprof/ on the default mux
 
-	"net-merge/internal/logx"
+	"mergify-net/internal/logx"
 )
 
 // startPprof serves Go's profiler for diagnosing CPU use, e.g.

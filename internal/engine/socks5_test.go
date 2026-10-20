@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"net-merge/internal/nics"
+	"mergify-net/internal/nics"
 )
 
 // Loopback aliases (127.0.0.2, 127.0.0.3) stand in for physical NICs: the target server

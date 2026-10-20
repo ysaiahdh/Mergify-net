@@ -1,10 +1,10 @@
 [Desktop Entry]
 Type=Application
-Name=net-merge
+Name=mergify-net
 GenericName=Connection merger
 Comment=Use all your network adapters at once
-Exec=net-merge tray
-Icon=net-merge
+Exec=mergify-net tray
+Icon=mergify-net
 Terminal=false
 Categories=Network;Utility;
 Keywords=network;bandwidth;tethering;wifi;ethernet;load balancing;

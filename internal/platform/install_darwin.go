@@ -12,17 +12,17 @@ import (
 	"syscall"
 )
 
-const sudoersPath = "/etc/sudoers.d/net-merge"
+const sudoersPath = "/etc/sudoers.d/mergify-net"
 
 var safeUser = regexp.MustCompile(`^[A-Za-z0-9._-]+$`)
 
-// Install (run as `sudo net-merge install`) copies this binary to a root-owned path and lets the
-// invoking user run exactly `net-merge tray` and `net-merge cleanup` there without a password.
+// Install (run as `sudo mergify-net install`) copies this binary to a root-owned path and lets the
+// invoking user run exactly `mergify-net tray` and `mergify-net cleanup` there without a password.
 // No wildcards: with `tray *` any process of the user could pass `-log /etc/...` and make root
 // overwrite files. Uninstall removes both.
 func Install(uninstall bool) error {
 	if !IsAdmin() {
-		return errors.New("run: sudo net-merge install")
+		return errors.New("run: sudo mergify-net install")
 	}
 	if uninstall {
 		exe := InstalledExe()
@@ -38,12 +38,12 @@ func Install(uninstall bool) error {
 		if err := os.RemoveAll(filepath.Dir(filepath.Dir(exeFallback))); err != nil {
 			return err
 		}
-		fmt.Println("removed " + sudoersPath + " and " + exe + ". Turn off start at sign-in with `net-merge autostart off`.")
+		fmt.Println("removed " + sudoersPath + " and " + exe + ". Turn off start at sign-in with `mergify-net autostart off`.")
 		return nil
 	}
 	user := os.Getenv("SUDO_USER")
 	if user == "" || user == "root" || !safeUser.MatchString(user) {
-		return errors.New("run it through sudo from your own account: sudo net-merge install")
+		return errors.New("run it through sudo from your own account: sudo mergify-net install")
 	}
 	exe := exePreferred
 	if rootOnly(filepath.Dir(exePreferred)) != nil {
@@ -61,7 +61,7 @@ func Install(uninstall bool) error {
 		removeOurLink()
 		os.RemoveAll(filepath.Dir(filepath.Dir(exeFallback))) // an older fallback copy would shadow this one
 	}
-	rule := fmt.Sprintf("# Written by `net-merge install`: %s may start the tray without a password.\n"+
+	rule := fmt.Sprintf("# Written by `mergify-net install`: %s may start the tray without a password.\n"+
 		"%s ALL=(root) NOPASSWD: %s tray, %s cleanup\n", user, user, exe, exe)
 	tmp := sudoersPath + ".tmp"
 	if err := os.WriteFile(tmp, []byte(rule), 0o440); err != nil {
@@ -75,7 +75,7 @@ func Install(uninstall bool) error {
 	if err := os.Rename(tmp, sudoersPath); err != nil {
 		return err
 	}
-	fmt.Printf("installed %s and %s.\nStart the tray with `net-merge tray` (no password), and at sign-in with `net-merge autostart on`.\n", exe, sudoersPath)
+	fmt.Printf("installed %s and %s.\nStart the tray with `mergify-net tray` (no password), and at sign-in with `mergify-net autostart on`.\n", exe, sudoersPath)
 	return nil
 }
 
@@ -93,7 +93,7 @@ func rootOnly(dir string) error {
 	return nil
 }
 
-// rootFile reports whether p is a regular file owned by root: a copy `net-merge install` made.
+// rootFile reports whether p is a regular file owned by root: a copy `mergify-net install` made.
 func rootFile(p string) bool {
 	fi, err := os.Lstat(p)
 	if err != nil || !fi.Mode().IsRegular() {
@@ -103,7 +103,7 @@ func rootFile(p string) bool {
 	return ok && st.Uid == 0
 }
 
-// linkIntoPath makes `net-merge` in /usr/local/bin point at the fallback copy, unless something
+// linkIntoPath makes `mergify-net` in /usr/local/bin point at the fallback copy, unless something
 // else (Homebrew's link) is there already. It replaces an old root-owned copy from an earlier install.
 func linkIntoPath() {
 	if fi, err := os.Lstat(exePreferred); err == nil {

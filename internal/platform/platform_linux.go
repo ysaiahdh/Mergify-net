@@ -36,11 +36,11 @@ func IsAdmin() bool {
 
 // The single-instance lock is an abstract unix socket: visible to every user, and released by the
 // kernel when the process dies, so a crash never leaves a stale lock behind.
-const lockAddr = "@net-merge"
+const lockAddr = "@mergify-net"
 
 var lock net.Listener
 
-// SingleInstance is false if another net-merge (run or tray) already owns the TUN.
+// SingleInstance is false if another mergify-net (run or tray) already owns the TUN.
 // The socket is intentionally kept for the life of the process.
 func SingleInstance() bool {
 	ln, err := net.Listen("unix", lockAddr)
@@ -60,7 +60,7 @@ func SingleInstance() bool {
 	return true
 }
 
-// InstanceRunning reports whether a net-merge holds the single-instance lock.
+// InstanceRunning reports whether a mergify-net holds the single-instance lock.
 func InstanceRunning() bool {
 	c, err := net.DialTimeout("unix", lockAddr, time.Second)
 	if err != nil {
@@ -92,7 +92,7 @@ func RelaunchElevated(args []string, hidden bool) error {
 	}
 	path, err := exec.LookPath(tool)
 	if err != nil {
-		return fmt.Errorf("%s not found; run net-merge as root or give it CAP_NET_ADMIN (see README)", tool)
+		return fmt.Errorf("%s not found; run mergify-net as root or give it CAP_NET_ADMIN (see README)", tool)
 	}
 	return syscall.Exec(path, append([]string{tool, exe}, args...), os.Environ())
 }
@@ -103,12 +103,12 @@ func RelaunchElevated(args []string, hidden bool) error {
 func RelaunchTray(args []string, hidden bool) error {
 	exe, _ := os.Executable()
 	if strings.HasPrefix(exe, "/nix/store/") { // read-only: capabilities come from a NixOS security wrapper
-		return errors.New("the tray needs CAP_NET_ADMIN: enable programs.net-merge in your NixOS configuration " +
-			"and run /run/wrappers/bin/net-merge (see README). `sudo net-merge run` works without it")
+		return errors.New("the tray needs CAP_NET_ADMIN: enable programs.mergify-net in your NixOS configuration " +
+			"and run /run/wrappers/bin/mergify-net (see README). `sudo mergify-net run` works without it")
 	}
 	return errors.New("the tray needs CAP_NET_ADMIN. Grant it once with:\n" +
 		"  sudo setcap cap_net_admin,cap_net_raw+ep " + exe + "\n" +
-		"`sudo net-merge run` works without it")
+		"`sudo mergify-net run` works without it")
 }
 
 // HasConsole reports whether stderr is a terminal.
@@ -121,7 +121,7 @@ func HasConsole() bool {
 // notify-send is installed (the error is in the log file either way).
 func ShowError(msg string) {
 	if path, err := exec.LookPath("notify-send"); err == nil {
-		exec.Command(path, "--urgency=critical", "--app-name=net-merge", "net-merge", msg).Run()
+		exec.Command(path, "--urgency=critical", "--app-name=mergify-net", "mergify-net", msg).Run()
 	}
 }
 

@@ -1,3 +1,5 @@
+//go:build !android
+
 package tun
 
 import (
@@ -7,10 +9,18 @@ import (
 	"github.com/vishvananda/netlink"
 	"golang.org/x/sys/unix"
 
-	"net-merge/internal/logx"
+	"github.com/xjasonlyu/tun2socks/v2/core/device"
+	t2stun "github.com/xjasonlyu/tun2socks/v2/core/device/tun"
+
+	"mergify-net/internal/logx"
 )
 
 const openHint = "needs root or CAP_NET_ADMIN, and /dev/net/tun"
+
+// openDevice opens /dev/net/tun and returns the link endpoint reading/writing its packets.
+func (t *Tun) openDevice() (device.Device, error) {
+	return t2stun.Open(openName, uint32(t.MTU))
+}
 
 // configure gives the new adapter its addresses and routes, and returns its index. tun2socks has
 // already set the MTU. Everything goes through netlink rather than `ip`, so it also works when the

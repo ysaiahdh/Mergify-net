@@ -7,11 +7,11 @@ import "time"
 // open at that moment, so both directions wait for things to settle, and automatic switches are
 // spaced apart so a flapping link can't toggle it all the time.
 const (
-	pauseAfterIdle = 10 * time.Second // one connection and nothing moving through net-merge
+	pauseAfterIdle = 10 * time.Second // one connection and nothing moving through mergify-net
 	pauseAfterBusy = 2 * time.Minute  // one connection but data is still moving: give it time to end
 	resumeAfter    = 3 * time.Second  // two or more connections
 	autoGap        = 30 * time.Second // least time between two automatic switches
-	quietRate      = 50_000           // bytes/s through net-merge under which it counts as quiet (about 0.4 Mbit/s)
+	quietRate      = 50_000           // bytes/s through mergify-net under which it counts as quiet (about 0.4 Mbit/s)
 )
 
 type autoAction int
@@ -43,7 +43,7 @@ func (a *autoPauser) start(startOn bool) {
 }
 
 // tick runs about once a second. on is whether merging is on, usable how many connections reach
-// the internet, active how many flows are moving data through net-merge (0 when it is quiet).
+// the internet, active how many flows are moving data through mergify-net (0 when it is quiet).
 func (a *autoPauser) tick(now time.Time, on bool, usable int, active int64) autoAction {
 	dt := time.Second
 	if d := now.Sub(a.lastTick); !a.lastTick.IsZero() && d > 0 && d < 2*time.Second {
@@ -83,7 +83,7 @@ func (a *autoPauser) tick(now time.Time, on bool, usable int, active int64) auto
 	return autoNone
 }
 
-// userSet records that the user switched merging on or off (menu or `net-merge on|off`).
+// userSet records that the user switched merging on or off (menu or `mergify-net on|off`).
 func (a *autoPauser) userSet(on bool, usable int) {
 	a.low, a.high = 0, 0
 	a.waiting = false

@@ -1,49 +1,40 @@
 <p align="center">
-  <img src="docs/icon.png" width="128" alt="net-merge icon">
+  <img src="docs/icon.png" width="128" alt="mergify-net icon">
 </p>
 
-<h1 align="center">net-merge</h1>
+<h1 align="center">Mergify-Net</h1>
 
 <p align="center">
-  <strong>Use all your internet connections at the same time.</strong><br>
-  Combine Wi-Fi, Ethernet and phone hotspots, so downloads, games and browsers get the speed of every connection added up.
+  <strong>Merge every network you have — on desktop and on Android.</strong><br>
+  Combine Wi-Fi, Ethernet and phone hotspots on Windows, macOS and Linux; on Android, aggregate Wi-Fi
+  and mobile data (4G/5G) through a local VPN, with no root required.
 </p>
 
 <p align="center">
-  <a href="https://github.com/rohit267/net-merge/releases/latest">Download</a> ·
+  <a href="https://github.com/rohit267/mergify-net/releases/latest">Download</a> ·
   <a href="#install">Install</a> ·
+  <a href="#android">Android</a> ·
   <a href="#add-a-second-connection">Add a second connection</a> ·
   <a href="#troubleshooting">Troubleshooting</a> ·
   <a href="docs/DEVELOPING.md">How it works</a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/rohit267/net-merge/actions/workflows/ci.yml"><img src="https://github.com/rohit267/net-merge/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-  <a href="https://github.com/rohit267/net-merge/releases"><img src="https://img.shields.io/github/v/release/rohit267/net-merge" alt="Latest release"></a>
-  <a href="https://github.com/rohit267/net-merge/releases"><img src="https://img.shields.io/github/downloads/rohit267/net-merge/total" alt="Downloads"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/github/license/rohit267/net-merge" alt="MIT license"></a>
-  <img src="https://img.shields.io/badge/platforms-Windows%20%7C%20macOS%20%7C%20Linux-blue" alt="Windows, macOS and Linux">
-  <a href="https://buymeacoffee.com/rohit267"><img src="https://img.shields.io/badge/Buy%20me%20a%20coffee-rohit267-FFDD00?logo=buymeacoffee&logoColor=black" alt="Buy me a coffee"></a>
-  <a href="https://paypal.me/champdev"><img src="https://img.shields.io/badge/Donate-PayPal-00457C?logo=paypal&logoColor=white" alt="Donate with PayPal"></a>
+  <a href="https://github.com/rohit267/mergify-net/actions/workflows/ci.yml"><img src="https://github.com/rohit267/mergify-net/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/rohit267/mergify-net/releases"><img src="https://img.shields.io/github/v/release/rohit267/mergify-net" alt="Latest release"></a>
+  <a href="https://github.com/rohit267/mergify-net/releases"><img src="https://img.shields.io/github/downloads/rohit267/mergify-net/total" alt="Downloads"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/rohit267/mergify-net" alt="MIT license"></a>
+  <img src="https://img.shields.io/badge/platforms-Windows%20%7C%20macOS%20%7C%20Linux%20%7C%20Android-blue" alt="Windows, macOS, Linux and Android">
 </p>
 
 <p align="center">
-  <a href="https://trendshift.io/repositories/301802?utm_source=trendshift-badge&amp;utm_medium=badge&amp;utm_campaign=badge-trendshift-301802" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/trendshift/repositories/301802/daily?language=Go" alt="rohit267%2Fnet-merge | Trendshift" width="250" height="55"/></a>
-  <a href="https://trendshift.io/repositories/301802?utm_source=trendshift-badge&amp;utm_medium=badge&amp;utm_campaign=badge-trendshift-301802" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/trendshift/repositories/301802/weekly?language=Go" alt="rohit267%2Fnet-merge | Trendshift" width="250" height="55"/></a>
-</p>
-
-<p align="center">
-  <sub>From the same developer: <a href="https://dormhost.dev/?utm_source=net-merge&utm_medium=readme"><strong>DormHost</strong></a>, put your college project
-  online. Node.js, Python or Docker with a database, 30 days free.</sub>
-</p>
-
-<p align="center">
-  <img src="docs/demo.gif" width="600" alt="Speed test on a Mac with Wi-Fi and an Android phone: the net-merge menu shows both connections carrying traffic, and the download reaches about 326 Mbit/s">
+  <img src="docs/demo.gif" width="600" alt="Speed test on a Mac with Wi-Fi and an Android phone: the mergify-net menu shows both connections carrying traffic, and the download reaches about 326 Mbit/s">
   <br>
   <sub>A Mac with Wi-Fi + an Android phone. The menu shows both connections working at once. <a href="docs/demo.mp4">Watch the full 45-second video.</a></sub>
 </p>
 
-net-merge uses all your network adapters together. It works on **Windows, macOS and Linux**. It is free.
+Mergify-Net uses all your network adapters together. It works on **Windows, macOS and Linux**, and on
+**Android** (10+, no root) it aggregates Wi-Fi and mobile data. It is free.
 There is no account, no server and no VPN.
 
 A real test with Wi-Fi + an Android USB tether + an iPhone hotspot, 9 downloads at once:
@@ -55,7 +46,7 @@ A real test with Wi-Fi + an Android USB tether + an iPhone hotspot, 9 downloads 
 
 ## How it helps
 
-net-merge gives every new connection to one of your links. When an app opens many connections, they
+mergify-net gives every new connection to one of your links. When an app opens many connections, they
 spread over all your links.
 
 - **Good for:** Steam and game downloads, browsers, system updates, cloud uploads (Google Drive),
@@ -65,7 +56,7 @@ spread over all your links.
   under [Use it](#use-it).
 - **Works for every app**, TCP and UDP, IPv4 and IPv6. You do not set up a proxy.
 - **Smart:** faster links get more connections. A link with no internet gets none until it works again.
-- **Safe:** if net-merge crashes, your internet keeps working.
+- **Safe:** if mergify-net crashes, your internet keeps working.
 - **Light:** about 0.18 CPU cores per 100 Mbit/s.
 
 ## Install
@@ -73,18 +64,18 @@ spread over all your links.
 **macOS and Linux**: paste this into a terminal.
 
 ```
-curl -fsSL https://raw.githubusercontent.com/rohit267/net-merge/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/rohit267/mergify-net/main/install.sh | sh
 ```
 
 **Windows**: paste this into PowerShell.
 
 ```
-irm https://raw.githubusercontent.com/rohit267/net-merge/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/rohit267/mergify-net/main/install.ps1 | iex
 ```
 
-That's it: net-merge is installed and its icon appears in the menu bar or tray. On Linux the script
+That's it: mergify-net is installed and its icon appears in the menu bar or tray. On Linux the script
 uses your package manager (apt, dnf, zypper, apk or pacman) and on macOS Homebrew when you have it, so
-net-merge updates with the rest of your system. To start it at sign-in, tick *Start at sign-in* in its menu.
+mergify-net updates with the rest of your system. To start it at sign-in, tick *Start at sign-in* in its menu.
 
 <details>
 <summary><strong>Rather type the commands yourself?</strong> One block per system, each ready to paste.</summary>
@@ -93,67 +84,67 @@ net-merge updates with the rest of your system. To start it at sign-in, tick *St
 **Homebrew** (macOS):
 
 ```
-brew install rohit267/tap/net-merge && sudo "$(brew --prefix)/bin/net-merge" install && net-merge tray
+brew install rohit267/tap/mergify-net && sudo "$(brew --prefix)/bin/mergify-net" install && mergify-net tray
 ```
 
 **macOS without Homebrew**:
 
 ```
-curl -fsSL https://github.com/rohit267/net-merge/releases/latest/download/net-merge-macos-universal.tar.gz | tar -xz -C /tmp net-merge && sudo /tmp/net-merge install && net-merge tray
+curl -fsSL https://github.com/rohit267/mergify-net/releases/latest/download/mergify-net-macos-universal.tar.gz | tar -xz -C /tmp mergify-net && sudo /tmp/mergify-net install && mergify-net tray
 ```
 
 **Debian, Ubuntu, Linux Mint, Pop!_OS, Raspberry Pi OS** (apt):
 
 ```
-curl -fsSL https://rohit267.github.io/net-merge/apt/key.gpg | sudo tee /usr/share/keyrings/net-merge.gpg >/dev/null
-echo "deb [signed-by=/usr/share/keyrings/net-merge.gpg] https://rohit267.github.io/net-merge/apt stable main" | sudo tee /etc/apt/sources.list.d/net-merge.list
-sudo apt update && sudo apt install -y net-merge
+curl -fsSL https://rohit267.github.io/mergify-net/apt/key.gpg | sudo tee /usr/share/keyrings/mergify-net.gpg >/dev/null
+echo "deb [signed-by=/usr/share/keyrings/mergify-net.gpg] https://rohit267.github.io/mergify-net/apt stable main" | sudo tee /etc/apt/sources.list.d/mergify-net.list
+sudo apt update && sudo apt install -y mergify-net
 ```
 
 **Fedora, RHEL, Rocky, Alma** (dnf):
 
 ```
-sudo curl -fsSL -o /etc/yum.repos.d/net-merge.repo https://rohit267.github.io/net-merge/rpm/net-merge.repo && sudo dnf install -y net-merge
+sudo curl -fsSL -o /etc/yum.repos.d/mergify-net.repo https://rohit267.github.io/mergify-net/rpm/mergify-net.repo && sudo dnf install -y mergify-net
 ```
 
 **openSUSE** (zypper):
 
 ```
-sudo zypper addrepo https://rohit267.github.io/net-merge/rpm/net-merge.repo && sudo zypper --gpg-auto-import-keys install -y net-merge
+sudo zypper addrepo https://rohit267.github.io/mergify-net/rpm/mergify-net.repo && sudo zypper --gpg-auto-import-keys install -y mergify-net
 ```
 
 **Arch, Manjaro, EndeavourOS** (pacman):
 
 ```
-curl -fsSL https://rohit267.github.io/net-merge/apt/key.asc | sudo pacman-key --add - && sudo pacman-key --lsign-key 0168C7AB77721656904811AE904F61E7F4F1C2A1
-printf '\n[net-merge]\nSigLevel = Required\nServer = https://rohit267.github.io/net-merge/arch/$arch\n' | sudo tee -a /etc/pacman.conf
-sudo pacman -Sy --noconfirm net-merge
+curl -fsSL https://rohit267.github.io/mergify-net/apt/key.asc | sudo pacman-key --add - && sudo pacman-key --lsign-key 0168C7AB77721656904811AE904F61E7F4F1C2A1
+printf '\n[mergify-net]\nSigLevel = Required\nServer = https://rohit267.github.io/mergify-net/arch/$arch\n' | sudo tee -a /etc/pacman.conf
+sudo pacman -Sy --noconfirm mergify-net
 ```
 
 **Alpine** (apk):
 
 ```
-sudo wget -O /etc/apk/keys/net-merge.rsa.pub https://rohit267.github.io/net-merge/apk/net-merge.rsa.pub
-echo https://rohit267.github.io/net-merge/apk | sudo tee -a /etc/apk/repositories && sudo apk add net-merge
+sudo wget -O /etc/apk/keys/mergify-net.rsa.pub https://rohit267.github.io/mergify-net/apk/mergify-net.rsa.pub
+echo https://rohit267.github.io/mergify-net/apk | sudo tee -a /etc/apk/repositories && sudo apk add mergify-net
 ```
 
 **Homebrew** (Linux):
 
 ```
-brew install rohit267/tap/net-merge && sudo setcap cap_net_admin,cap_net_raw+ep "$(readlink -f "$(brew --prefix)/bin/net-merge")"
+brew install rohit267/tap/mergify-net && sudo setcap cap_net_admin,cap_net_raw+ep "$(readlink -f "$(brew --prefix)/bin/mergify-net")"
 ```
 
 **Any other Linux** (any CPU):
 
 ```
-curl -fsSL https://github.com/rohit267/net-merge/releases/latest/download/net-merge-linux-$(uname -m).tar.gz | tar -xz -C /tmp net-merge && sudo install -m 755 /tmp/net-merge /usr/local/bin/ && sudo setcap cap_net_admin,cap_net_raw+ep /usr/local/bin/net-merge
+curl -fsSL https://github.com/rohit267/mergify-net/releases/latest/download/mergify-net-linux-$(uname -m).tar.gz | tar -xz -C /tmp mergify-net && sudo install -m 755 /tmp/mergify-net /usr/local/bin/ && sudo setcap cap_net_admin,cap_net_raw+ep /usr/local/bin/mergify-net
 ```
 
-**Windows by hand**: download [net-merge-setup.exe](https://github.com/rohit267/net-merge/releases/latest/download/net-merge-setup.exe)
+**Windows by hand**: download [mergify-net-setup.exe](https://github.com/rohit267/mergify-net/releases/latest/download/mergify-net-setup.exe)
 and run it. Windows may warn because the app is not signed yet: click *More info*, then *Run anyway*.
-There is also a [portable zip](https://github.com/rohit267/net-merge/releases/latest/download/net-merge-portable.zip).
+There is also a [portable zip](https://github.com/rohit267/mergify-net/releases/latest/download/mergify-net-portable.zip).
 
-Then start it with `net-merge tray` (Linux, macOS) or from the Start menu (Windows).
+Then start it with `mergify-net tray` (Linux, macOS) or from the Start menu (Windows).
 </details>
 
 <details>
@@ -162,120 +153,149 @@ Then start it with `net-merge tray` (Linux, macOS) or from the Start menu (Windo
 
 - **Which CPUs:** x86-64, ARM64 and Apple Silicon, ARMv7, ARMv6 (Raspberry Pi), x86 32-bit, RISC-V,
   PowerPC (ppc64le), s390x and LoongArch.
-- **No password prompts:** the Linux packages give net-merge the network rights it needs (`setcap`), and on
-  macOS `net-merge install` adds one rule so that only `net-merge tray` can run as root without a password.
+- **No password prompts:** the Linux packages give mergify-net the network rights it needs (`setcap`), and on
+  macOS `mergify-net install` adds one rule so that only `mergify-net tray` can run as root without a password.
 - **Linux tray icon:** needs a desktop with StatusNotifierItem support: KDE, XFCE, Cinnamon, LXQt, Budgie,
   or GNOME with the *AppIndicator and KStatusNotifierItem Support* extension (Ubuntu already has it).
-- **Firewall:** if it blocks unknown traffic, trust the `net-merge` interface
-  (for example `firewall-cmd --zone=trusted --add-interface=net-merge`).
+- **Firewall:** if it blocks unknown traffic, trust the `mergify-net` interface
+  (for example `firewall-cmd --zone=trusted --add-interface=mergify-net`).
 - **Signed repositories:** apt, dnf, zypper and pacman use the key in
   [`packaging/apt-signing-key.asc`](packaging/apt-signing-key.asc), fingerprint
   `0168 C7AB 7772 1656 9048 11AE 904F 61E7 F4F1 C2A1`.
 </details>
 
+## Android
+
+On a phone, one connection at a time is the norm. Mergify-Net for Android runs the same Go engine —
+compiled to a native library with [gomobile](https://pkg.go.dev/golang.org/x/mobile) — inside a local
+VPN (**VpnService**). Every outgoing socket is protected and pinned to the right network, so an app
+opening several connections uses **Wi-Fi and mobile data (4G/5G) at once**.
+
+- **No root.** The VPN lives entirely in the app and no traffic goes through a server; Android shows
+  the usual VPN key icon while it runs.
+- **Smart routing.** The lowest-latency link is the primary and carries every new flow; the other one
+  only takes traffic when the primary is saturated or losing packets, so downloads and speed tests
+  get the best of both without being dragged down by the weaker link.
+- **Both links stay yours.** Nothing is hijacked system-wide: only traffic entering the tunnel is
+  balanced.
+
+Build it from source (Android Studio, or Gradle on the command line):
+
+```
+cd android
+./gradlew assembleDebug        # app/build/outputs/apk/debug/app-debug.apk
+adb install -r app/build/outputs/apk/debug/app-debug.apk
+```
+
+The Go engine is embedded as `android/app/libs/mergify.aar`, regenerated with:
+
+```
+gomobile bind -target=android/arm64 -androidapi 29 -javapkg mergifynet -o android/app/libs/mergify.aar ./pkg/mobile
+```
+
 ## Uninstall
 
-**macOS and Linux**: paste this into a terminal. It stops net-merge and removes it the way it was
+**macOS and Linux**: paste this into a terminal. It stops mergify-net and removes it the way it was
 installed (Homebrew, apt, dnf, zypper, apk, pacman or the download), with its repository and key.
 
 ```
-curl -fsSL https://raw.githubusercontent.com/rohit267/net-merge/main/install.sh | sh -s -- uninstall
+curl -fsSL https://raw.githubusercontent.com/rohit267/mergify-net/main/install.sh | sh -s -- uninstall
 ```
 
-**Windows**: paste this into PowerShell, or use *Settings > Apps > Installed apps > net-merge > Uninstall*.
+**Windows**: paste this into PowerShell, or use *Settings > Apps > Installed apps > mergify-net > Uninstall*.
 
 ```
-& "$env:ProgramFiles\net-merge\net-merge.exe" quit; Start-Process "$env:ProgramFiles\net-merge\unins000.exe" '/SILENT' -Verb RunAs -Wait
+& "$env:ProgramFiles\mergify-net\mergify-net.exe" quit; Start-Process "$env:ProgramFiles\mergify-net\unins000.exe" '/SILENT' -Verb RunAs -Wait
 ```
 
-Your network goes back to normal as soon as net-merge stops: it removes its virtual adapter and routes
+Your network goes back to normal as soon as mergify-net stops: it removes its virtual adapter and routes
 when it quits, and even after a crash.
 
 <details>
 <summary><strong>Rather type the commands yourself?</strong> One block per way you installed it.</summary>
 <br>
 
-Each block first stops the tray and turns off start at sign-in, then removes net-merge.
+Each block first stops the tray and turns off start at sign-in, then removes mergify-net.
 
 **Homebrew** (macOS):
 
 ```
-net-merge quit; net-merge autostart off; sudo net-merge uninstall; brew uninstall net-merge && brew untap rohit267/tap
+mergify-net quit; mergify-net autostart off; sudo mergify-net uninstall; brew uninstall mergify-net && brew untap rohit267/tap
 ```
 
 **macOS without Homebrew**:
 
 ```
-net-merge quit; net-merge autostart off; sudo net-merge uninstall
+mergify-net quit; mergify-net autostart off; sudo mergify-net uninstall
 ```
 
 **Debian, Ubuntu, Linux Mint, Pop!_OS, Raspberry Pi OS** (apt):
 
 ```
-net-merge quit; net-merge autostart off; sudo apt remove -y net-merge && sudo rm -f /etc/apt/sources.list.d/net-merge.list /usr/share/keyrings/net-merge.gpg
+mergify-net quit; mergify-net autostart off; sudo apt remove -y mergify-net && sudo rm -f /etc/apt/sources.list.d/mergify-net.list /usr/share/keyrings/mergify-net.gpg
 ```
 
 **Fedora, RHEL, Rocky, Alma** (dnf):
 
 ```
-net-merge quit; net-merge autostart off; sudo dnf remove -y net-merge && sudo rm -f /etc/yum.repos.d/net-merge.repo
+mergify-net quit; mergify-net autostart off; sudo dnf remove -y mergify-net && sudo rm -f /etc/yum.repos.d/mergify-net.repo
 ```
 
 **openSUSE** (zypper):
 
 ```
-net-merge quit; net-merge autostart off; sudo zypper remove -y net-merge && sudo zypper removerepo net-merge
+mergify-net quit; mergify-net autostart off; sudo zypper remove -y mergify-net && sudo zypper removerepo mergify-net
 ```
 
 **Arch, Manjaro, EndeavourOS** (pacman):
 
 ```
-net-merge quit; net-merge autostart off; sudo pacman -R --noconfirm net-merge && sudo sed -i '/^\[net-merge\]$/,/^Server = .*net-merge/d' /etc/pacman.conf && sudo pacman-key --delete 0168C7AB77721656904811AE904F61E7F4F1C2A1
+mergify-net quit; mergify-net autostart off; sudo pacman -R --noconfirm mergify-net && sudo sed -i '/^\[mergify-net\]$/,/^Server = .*mergify-net/d' /etc/pacman.conf && sudo pacman-key --delete 0168C7AB77721656904811AE904F61E7F4F1C2A1
 ```
 
 **Alpine** (apk):
 
 ```
-net-merge quit; net-merge autostart off; sudo apk del net-merge && sudo sed -i '\#rohit267.github.io/net-merge/apk#d' /etc/apk/repositories && sudo rm -f /etc/apk/keys/net-merge.rsa.pub
+mergify-net quit; mergify-net autostart off; sudo apk del mergify-net && sudo sed -i '\#rohit267.github.io/mergify-net/apk#d' /etc/apk/repositories && sudo rm -f /etc/apk/keys/mergify-net.rsa.pub
 ```
 
 **Homebrew** (Linux):
 
 ```
-net-merge quit; net-merge autostart off; brew uninstall net-merge && brew untap rohit267/tap
+mergify-net quit; mergify-net autostart off; brew uninstall mergify-net && brew untap rohit267/tap
 ```
 
 **Any other Linux** (the download):
 
 ```
-net-merge quit; net-merge autostart off; sudo rm -f /usr/local/bin/net-merge
+mergify-net quit; mergify-net autostart off; sudo rm -f /usr/local/bin/mergify-net
 ```
 
-**Windows portable zip**: run `net-merge.exe autostart off` in its folder, quit the tray, then delete the folder.
+**Windows portable zip**: run `mergify-net.exe autostart off` in its folder, quit the tray, then delete the folder.
 
-**NixOS**: remove `programs.net-merge` (and the `net-merge` input) from your configuration and rebuild.
+**NixOS**: remove `programs.mergify-net` (and the `mergify-net` input) from your configuration and rebuild.
 </details>
 
 ### NixOS
 
 ```nix
 # flake.nix
-inputs.net-merge.url = "github:rohit267/net-merge";
+inputs.mergify-net.url = "github:rohit267/mergify-net";
 
 # configuration.nix (with `inputs` passed via specialArgs)
-imports = [ inputs.net-merge.nixosModules.default ];
-programs.net-merge = {
+imports = [ inputs.mergify-net.nixosModules.default ];
+programs.mergify-net = {
   enable = true;
   autostart = true;   # optional: start the tray in every graphical session
 };
 ```
 
-To try it without installing: `sudo nix run github:rohit267/net-merge -- run`.
+To try it without installing: `sudo nix run github:rohit267/mergify-net -- run`.
 
 ## Add a second connection
 
-net-merge needs **two or more** real connections. Use Wi-Fi plus one of these: a phone (USB tethering or
-hotspot), an Ethernet cable, or a second Wi-Fi. Plug it in and net-merge adds it within a few seconds.
+mergify-net needs **two or more** real connections. Use Wi-Fi plus one of these: a phone (USB tethering or
+hotspot), an Ethernet cable, or a second Wi-Fi. Plug it in and mergify-net adds it within a few seconds.
 When you unplug it, its connections move to the others.
 
 **Windows and Linux:** plug the phone in and turn on *USB tethering* (Android) or *Personal Hotspot*
@@ -284,36 +304,36 @@ When you unplug it, its connections move to the others.
 **Mac with an iPhone** (nothing extra to install)
 1. Plug the iPhone in with a cable. Tap *Trust* on the iPhone if it asks.
 2. On the iPhone, open *Settings > Personal Hotspot* and turn on *Allow Others to Join*.
-3. An **iPhone USB** network appears on the Mac. net-merge adds it in a few seconds.
+3. An **iPhone USB** network appears on the Mac. mergify-net adds it in a few seconds.
 
 **Mac with an Android phone** (needs the app **TetherKit**)
 
 macOS cannot use Android USB tethering by itself. The app **TetherKit** adds that support.
 1. Install and open TetherKit.
 2. Plug the phone in and turn on *USB tethering* in the phone's settings.
-3. Click **Apply** in TetherKit. net-merge adds the new network in a few seconds.
+3. Click **Apply** in TetherKit. mergify-net adds the new network in a few seconds.
 
-> **Start net-merge first, then connect the Android phone.** macOS drops the TetherKit connection each
-> time net-merge starts or quits. Pausing and resuming is safe: net-merge keeps its virtual adapter while
+> **Start mergify-net first, then connect the Android phone.** macOS drops the TetherKit connection each
+> time mergify-net starts or quits. Pausing and resuming is safe: mergify-net keeps its virtual adapter while
 > paused. If the phone link disappears, click **Apply** in TetherKit again. The iPhone is not affected.
 
-A phone uses its mobile data, so part of your traffic goes through it while net-merge runs. Quit
-net-merge when you do not want that.
+A phone uses its mobile data, so part of your traffic goes through it while mergify-net runs. Quit
+mergify-net when you do not want that.
 
 ## Use it
 
-1. Start net-merge. A tray icon appears (menu bar on Mac).
+1. Start mergify-net. A tray icon appears (menu bar on Mac).
 2. The icon is **green** when it is merging and **grey** when it is paused.
 3. **It pauses by itself** when fewer than two connections have internet, because there is nothing to
    merge, and the menu says *Paused: one connection*. It **starts again by itself** when a second
    connection works. If you pause or start it yourself, that choice wins: it will not start again after
    you paused it. Untick *Pause when there is only one connection* in the menu to switch this off, or run
-   `net-merge tray -auto-pause=false`.
+   `mergify-net tray -auto-pause=false`.
 4. **Hover** the icon to see the speed of each connection and the total.
 5. **Right-click** the icon (on Mac, click it) to open the menu. It shows each connection's speed, how
-   many connections net-merge gave it, and the buttons *Pause merging* / *Start merging* and *Quit*.
+   many connections mergify-net gave it, and the buttons *Pause merging* / *Start merging* and *Quit*.
 6. To start it at sign-in: tick *Start at sign-in* in the menu (or the box in the Windows installer, or run
-   `net-merge autostart on`). On a Mac this needs `sudo net-merge install` once.
+   `mergify-net autostart on`). On a Mac this needs `sudo mergify-net install` once.
 
 Tips:
 - Torrent clients already use every connection. Leave qBittorrent's network interface on *Any interface*.
@@ -328,7 +348,7 @@ Tips:
   sites do.
 - Leave *Use all adapters (IPv6 only if every adapter has it)* ticked. Untick it only if you must reach a
   site that only has IPv6.
-- `net-merge list` shows which connections are used and why others are skipped. `net-merge status`
+- `mergify-net list` shows which connections are used and why others are skipped. `mergify-net status`
   shows live numbers.
 
 ## Troubleshooting
@@ -342,14 +362,14 @@ router plus a phone on mobile data works. Wi-Fi and Ethernet plugged into the **
 share one internet line, so the total stays the same.
 
 Also remember that one connection always uses one link. Many parallel connections (Steam, browsers,
-download managers) are what speed up. Run `net-merge status` to see how many connections each link carries.
+download managers) are what speed up. Run `mergify-net status` to see how many connections each link carries.
 </details>
 
 <details>
 <summary><strong>A connection does not show up</strong></summary>
 <br>
 
-Run `net-merge list`. It shows which connections are used and why the others are skipped, for example
+Run `mergify-net list`. It shows which connections are used and why the others are skipped, for example
 "no default gateway" (the link has no internet yet).
 
 - **iPhone on a Mac:** plug it in, tap *Trust*, and turn on *Settings > Personal Hotspot > Allow Others to
@@ -364,8 +384,8 @@ Run `net-merge list`. It shows which connections are used and why the others are
 <summary><strong>The Android connection disappears on a Mac</strong></summary>
 <br>
 
-macOS drops the TetherKit connection each time net-merge starts or quits (pausing and resuming is safe).
-Start net-merge first, then connect the phone. If it vanishes, click **Apply** in TetherKit again.
+macOS drops the TetherKit connection each time mergify-net starts or quits (pausing and resuming is safe).
+Start mergify-net first, then connect the phone. If it vanishes, click **Apply** in TetherKit again.
 </details>
 
 <details>
@@ -378,10 +398,10 @@ go to *Computer Configuration > Administrative Templates > Network > Windows Con
 </details>
 
 <details>
-<summary><strong>macOS says it cannot open net-merge, or Windows says "protected your PC"</strong></summary>
+<summary><strong>macOS says it cannot open mergify-net, or Windows says "protected your PC"</strong></summary>
 <br>
 
-The apps are not code-signed yet. On macOS run `xattr -d com.apple.quarantine net-merge`. On Windows click
+The apps are not code-signed yet. On macOS run `xattr -d com.apple.quarantine mergify-net`. On Windows click
 *More info*, then *Run anyway*.
 </details>
 
@@ -389,7 +409,7 @@ The apps are not code-signed yet. On macOS run `xattr -d com.apple.quarantine ne
 <summary><strong>The menu says "Paused: one connection"</strong></summary>
 <br>
 
-net-merge only has something to do with two or more connections that have internet, so it waits. Plug
+mergify-net only has something to do with two or more connections that have internet, so it waits. Plug
 in or connect the second one (see *Add a second connection*) and it starts by itself after a few seconds.
 To merge anyway, choose *Start merging* (it then stays on until a second connection has come and gone), or
 untick *Pause when there is only one connection*.
@@ -413,29 +433,29 @@ and KStatusNotifierItem Support* extension).
 <summary><strong>A site asks me to log in again</strong></summary>
 <br>
 
-net-merge may use a different IP for each connection, and some sites tie your login to one IP. That is a
+mergify-net may use a different IP for each connection, and some sites tie your login to one IP. That is a
 limit of splitting connections over several links.
 </details>
 
 ## Commands
 
 ```
-net-merge tray            tray icon (the normal way to run it)
-net-merge on | off        start / pause merging in the running tray
-net-merge quit            pause and close the tray
-net-merge status | list   live numbers / which connections are used
-net-merge autostart on|off|status
-net-merge socks           plain SOCKS5 proxy on 127.0.0.1:1080 (no admin, per app)
-net-merge cleanup         remove leftover routes after a crash
-net-merge install         macOS only: `sudo net-merge install` (see above)
+mergify-net tray            tray icon (the normal way to run it)
+mergify-net on | off        start / pause merging in the running tray
+mergify-net quit            pause and close the tray
+mergify-net status | list   live numbers / which connections are used
+mergify-net autostart on|off|status
+mergify-net socks           plain SOCKS5 proxy on 127.0.0.1:1080 (no admin, per app)
+mergify-net cleanup         remove leftover routes after a crash
+mergify-net install         macOS only: `sudo mergify-net install` (see above)
 ```
 
 More flags and details are in [docs/DEVELOPING.md](docs/DEVELOPING.md).
 
 ## Good to know
 
-- Needs admin (Windows), `CAP_NET_ADMIN` (Linux) or `sudo net-merge install` once (macOS).
-- Some sites tie your login to one IP. net-merge may use a different IP for each connection, so such a
+- Needs admin (Windows), `CAP_NET_ADMIN` (Linux) or `sudo mergify-net install` once (macOS).
+- Some sites tie your login to one IP. mergify-net may use a different IP for each connection, so such a
   site can ask you to log in again.
 - If your connections differ in IPv6 support, sites that only have IPv6 are not reachable while the box
   above is ticked.
@@ -449,7 +469,7 @@ More flags and details are in [docs/DEVELOPING.md](docs/DEVELOPING.md).
 
 ## Support
 
-net-merge is free. If it saves you time, you can [buy me a coffee](https://buymeacoffee.com/rohit267) or [donate with PayPal](https://paypal.me/champdev). Thank you!
+mergify-net is free. If it saves you time, you can [buy me a coffee](https://buymeacoffee.com/rohit267) or [donate with PayPal](https://paypal.me/champdev). Thank you!
 
-Building a college project? Host it on [DormHost](https://dormhost.dev/?utm_source=net-merge&utm_medium=readme-support),
+Building a college project? Host it on [DormHost](https://dormhost.dev/?utm_source=mergify-net&utm_medium=readme-support),
 also by me: Node.js, Python or Docker with a database, 30 days free.
