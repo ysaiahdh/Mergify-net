@@ -178,6 +178,14 @@ opening several connections uses **Wi-Fi and mobile data (4G/5G) at once**.
   get the best of both without being dragged down by the weaker link.
 - **Both links stay yours.** Nothing is hijacked system-wide: only traffic entering the tunnel is
   balanced.
+- **Data usage.** The dashboard reports the volume carried through the tunnel this session and
+  cumulatively, split between Wi-Fi and mobile data (4G/5G), from the engine's per-interface byte
+  counters.
+- **Settings.** The gear at the top of the dashboard opens *Paramètres*: a cellular data budget
+  (slider from 100 Mo to 20 Go, or *Illimité*) persisted in `SharedPreferences` — the stats loop
+  takes cellular out of the balance (`UpdateNetworks(wifiHandle, 0)`) and notifies the user as
+  soon as the cumulative mobile volume reaches it — plus a switch to force multi-flow, which makes
+  the scheduler alternate every new connection across both links instead of the fastest one.
 
 Pour compiler l'app, voir la procédure complète : [Compiler la version mobile (Android)](#compiler-la-version-mobile-android)
 (gomobile → `mergify.aar`, puis Gradle → APK, et installation via `adb`).

@@ -2,4 +2,6 @@
 <resources>
     <string name="app_name">Mergify-Net</string>
     <string name="notification_text">VPN actif — trafic équilibré entre les réseaux</string>
+    <string name="mobile_cap_channel">Seuil de données mobiles</string>
+    <string name="mobile_cap_reached">Seuil atteint — trafic mobile coupé, tout passe par le Wi-Fi</string>
 </resources>

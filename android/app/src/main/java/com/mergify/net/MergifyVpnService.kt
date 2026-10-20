@@ -28,9 +28,18 @@ class MergifyVpnService : VpnService(), mergifynet.mobile.AndroidNetworkBridge {
     private val cm by lazy { getSystemService(ConnectivityManager::class.java) }
     private var started = false
 
+    /**
+     * Cellular cap state: once the user's cumulative budget is reached, cellular is published to
+     * Go as absent (`UpdateNetworks(wifiHandle, 0)`) so the scheduler stops handing new flows to
+     * 4G/5G — flows already on it finish on their own. Read by [syncNetworksToGo], written by
+     * [applyMobileDataCap]; mirrored into [mobileDataCapped] for the UI.
+     */
+    private var mobileCapped = false
+
     override fun onCreate() {
         super.onCreate()
         monitor = NetworkMonitor(this)
+        instance = this
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -45,6 +54,7 @@ class MergifyVpnService : VpnService(), mergifynet.mobile.AndroidNetworkBridge {
     }
 
     override fun onDestroy() {
+        instance = null
         stopVpn()
         super.onDestroy()
     }
@@ -71,13 +81,22 @@ class MergifyVpnService : VpnService(), mergifynet.mobile.AndroidNetworkBridge {
             return
         }
 
-        // 2. The networks: register what is up right now, then keep Go posted on every change.
+        // 2. The settings: the multi-flux switch goes to Go before the engine exists (StartVpn
+        //    applies it to the scheduler it builds, and Go keeps it for the next sessions), and
+        //    the cellular cap is re-evaluated against the *cumulative* volume — a restart that
+        //    starts over budget must not hand cellular a free second while the UI polls. Setting
+        //    it here means the sync below already publishes cellular as absent when it holds.
+        val settings = SettingsRepository(this).load()
+        Mobile.setForceMultiFlow(settings.forceMultiFlow)
+        applyMobileDataCap(settings.limitReached(DataUsageTracker.peek(this).cell), notify = true)
+
+        // 3. The networks: register what is up right now, then keep Go posted on every change.
         //    StartVpn refuses to run with no network registered, hence the synchronous
         //    syncNetworksToGo() right after start().
         monitor.start { syncNetworksToGo() }
         syncNetworksToGo()
 
-        // 3. The fd's ownership goes to Go: detachFd() prevents the ParcelFileDescriptor (or
+        // 4. The fd's ownership goes to Go: detachFd() prevents the ParcelFileDescriptor (or
         //    its finalizer, when the GC collects it) from closing a descriptor Go is using.
         //    From here on Go closes it — on StopVpn, or on any start error.
         val tunFd = pfd.detachFd()
@@ -95,6 +114,14 @@ class MergifyVpnService : VpnService(), mergifynet.mobile.AndroidNetworkBridge {
         // Lets the system score connectivity (captive-portal checks, etc.) on the real networks.
         setUnderlyingNetworks(monitor.networks().map { it.second }.toTypedArray())
         Log.i(TAG, "mergify-net started (Wi-Fi=${monitor.handles().first}, cell=${monitor.handles().second})")
+        // What this session runs with, so `adb logcat -s MergifyNet` shows the policy and the cap
+        // state at startup as well, not only when they move.
+        Log.i(TAG, "settings: multi-flux=${settings.forceMultiFlow}")
+        Log.i(
+            TAG,
+            "settings: seuil mobile=${settings.mobileLimitLabel}" +
+                if (mobileCapped) " (atteint, cell coupée)" else "",
+        )
     }
 
     private fun stopVpn() {
@@ -106,6 +133,11 @@ class MergifyVpnService : VpnService(), mergifynet.mobile.AndroidNetworkBridge {
         runCatching { Mobile.stopVpn() } // closes the TUN fd Go owns
         monitor.stop()
         setUnderlyingNetworks(null)
+        // Nothing runs through the tunnel anymore, so nothing is being cut: the next start
+        // re-evaluates the budget against the cumulative volume anyway.
+        mobileCapped = false
+        mobileDataCapped = false
+        cancelMobileDataCapNotification()
         Log.i(TAG, "mergify-net stopped")
     }
 
@@ -138,9 +170,66 @@ class MergifyVpnService : VpnService(), mergifynet.mobile.AndroidNetworkBridge {
             }
             Mobile.applyManualNics()
             val (wifiHandle, cellHandle) = monitor.handles()
-            Mobile.updateNetworks(wifiHandle, cellHandle)
+            // 0 tells Go the network is unavailable (or, here, not allowed anymore): while the
+            // cap holds cellular stays unpublished, so no new flow leaves through 4G/5G.
+            Mobile.updateNetworks(wifiHandle, if (mobileCapped) 0L else cellHandle)
         } catch (e: Exception) {
             Log.e(TAG, "sync networks to Go: $e")
+        }
+    }
+
+    /**
+     * Applies or lifts the cellular cap. The only thing it changes is what [syncNetworksToGo]
+     * publishes for cellular (`0` while capped) — the same path every network change already
+     * takes, so a Wi-Fi handover during a capped session cannot silently re-open the route.
+     * Notifies the user when it trips, cancels that notification when the budget is raised or
+     * the tunnel stops; idempotent, so the stats poll loop can call it every tick.
+     */
+    private fun applyMobileDataCap(capped: Boolean, notify: Boolean = false) {
+        if (mobileCapped == capped) {
+            return
+        }
+        mobileCapped = capped
+        mobileDataCapped = capped
+        if (started) {
+            syncNetworksToGo()
+        }
+        if (capped) {
+            Log.w(TAG, "cellular budget reached: new flows stay on Wi-Fi")
+            if (notify) {
+                notifyMobileDataCap()
+            }
+        } else {
+            Log.i(TAG, "cellular budget raised: 4G/5G is back in the balance")
+            cancelMobileDataCapNotification()
+        }
+    }
+
+    /** The one-off alert shown when the cellular budget is reached (its own channel: low for
+     *  the ongoing VPN notification would mute it, and this one must be heard). */
+    private fun notifyMobileDataCap() {
+        val nm = getSystemService(NotificationManager::class.java)
+        nm.createNotificationChannel(
+            NotificationChannel(
+                CAP_CHANNEL_ID,
+                getString(R.string.mobile_cap_channel),
+                NotificationManager.IMPORTANCE_DEFAULT,
+            ),
+        )
+        nm.notify(
+            CAP_NOTIFICATION_ID,
+            Notification.Builder(this, CAP_CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_vpn)
+                .setContentTitle(getString(R.string.app_name))
+                .setContentText(getString(R.string.mobile_cap_reached))
+                .setAutoCancel(true)
+                .build(),
+        )
+    }
+
+    private fun cancelMobileDataCapNotification() {
+        runCatching {
+            getSystemService(NotificationManager::class.java).cancel(CAP_NOTIFICATION_ID)
         }
     }
 
@@ -183,6 +272,8 @@ class MergifyVpnService : VpnService(), mergifynet.mobile.AndroidNetworkBridge {
         private const val WEIGHT = 1.0
         private const val CHANNEL_ID = "mergify-net"
         private const val NOTIFICATION_ID = 1
+        private const val CAP_CHANNEL_ID = "mergify-net-cap"
+        private const val CAP_NOTIFICATION_ID = 2
 
         // Service.FOREGROUND_SERVICE_TYPE_SYSTEM_EXEMPTED is a system API, absent from the
         // public SDK; its flag value is 1024 (the foregroundServiceType table in the SDK's
@@ -194,6 +285,27 @@ class MergifyVpnService : VpnService(), mergifynet.mobile.AndroidNetworkBridge {
         @Volatile
         var isRunning = false
             private set
+
+        /**
+         * Whether cellular is currently cut by the user's budget. The dashboard reads it to show
+         * the cap; [setMobileDataCap] is what changes it (through the running service).
+         */
+        @Volatile
+        var mobileDataCapped = false
+            private set
+
+        @Volatile
+        private var instance: MergifyVpnService? = null
+
+        /**
+         * Applies or lifts the cellular cap on the running tunnel. The stats poll loop calls it
+         * whenever the cumulative cellular volume crosses the threshold — in either direction,
+         * so raising the budget in the settings restores the route within a second. A no-op when
+         * nothing runs: [startVpn] re-evaluates the budget on the next start anyway.
+         */
+        fun setMobileDataCap(capped: Boolean) {
+            instance?.applyMobileDataCap(capped, notify = true)
+        }
 
         /**
          * Binds an already-open socket fd to [network].

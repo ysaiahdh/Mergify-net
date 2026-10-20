@@ -5,6 +5,20 @@ entry here before pushing a version tag.
 
 ## [Unreleased]
 
+### Added
+- **Android: data usage tracking.** The engine's per-interface atomic counters (Rx/Tx per address
+  family) are now aggregated per transport in `GetStatsJSON` — `wifi_rx_bytes`, `wifi_tx_bytes`,
+  `cell_rx_bytes`, `cell_tx_bytes` and `total_bytes` — and the dashboard gained a *CONSOMMATION*
+  card: session total, cumulative total kept across sessions (SharedPreferences), and the
+  Wi-Fi / mobile split with a share bar.
+- **Android: *Paramètres* screen.** A gear opens it from the dashboard (same dark, hairline
+  style). Two controls, both persisted in `SharedPreferences`: a cellular data budget slider
+  (100 Mo … 20 Go, plus *Illimité*) and a *Forcer le trafic multi-flux* switch. The stats poll
+  loop cuts the cellular route (`UpdateNetworks(wifiHandle, 0)`) and notifies the user the moment
+  the cumulative mobile volume reaches the budget — raising it restores the route on the next
+  tick — and the new exported `Mobile.SetForceMultiFlow(enabled)` makes the Go scheduler alternate
+  every new flow across both links instead of stacking them on the lowest-latency one.
+
 ### Changed
 - **Rebranded as Mergify-Net.** The project, Go module (`mergify-net`), binary, state directories and
   Android app (`com.mergify.net`, AAR `mergify.aar`) now carry the Mergify-Net name everywhere. The

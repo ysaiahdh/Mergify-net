@@ -345,6 +345,46 @@ func TestStickyPrimaryByLatency(t *testing.T) {
 	}
 }
 
+// Forced multi-flow inverts that policy: the fastest link must no longer take every new flow
+// while it has room — the flows alternate across both links instead — even though the primary
+// is still elected for the stats.
+func TestForceMultiFlowSpreadsBeforeSaturation(t *testing.T) {
+	s := NewScheduler([]nics.Nic{nic("wifi", "10.0.0.1", 1), nic("cell", "10.0.0.2", 1)})
+	wifi, cell := s.slots[0], s.slots[1]
+	s.SetState(wifi, Fam4, true)
+	s.SetState(cell, Fam4, true)
+	wifi.rtt[Fam4].Store(20_000) // µs: wifi is clearly the fastest link
+	cell.rtt[Fam4].Store(80_000)
+
+	s.SetForceMultiFlow(true)
+	seen := map[string]int{}
+	for i := 0; i < 10; i++ {
+		seen[s.Acquire(nil).Name]++
+	}
+	if seen["wifi"] == 0 || seen["cell"] == 0 {
+		t.Fatalf("forced multi-flow must alternate between both links, got %v", seen)
+	}
+	if snap := s.Snapshot(); !snap[0].Primary || snap[0].RTT != 20 {
+		t.Fatalf("the fastest NIC must still be reported as primary: %+v", snap[0])
+	}
+
+	// Switching it back off restores the latency preference (the flows held by the forced
+	// phase are released first, so the primary is not already counted as saturated).
+	for _, p := range []*Slot{wifi, cell} {
+		for p.actF[Fam4].Load() > 0 {
+			s.Release(p)
+		}
+	}
+	s.SetForceMultiFlow(false)
+	for i := 0; i < minFlowsSpread; i++ {
+		got := s.Acquire(nil)
+		if got != wifi {
+			t.Fatalf("flow %d went to %s, want the lowest-latency primary again", i, got.Name)
+		}
+		s.Release(got)
+	}
+}
+
 // A challenger only takes the seat when it is clearly (primarySwitchPct) faster: similar
 // latencies must not make the primary flap back and forth.
 func TestPrimarySwitchNeedsMargin(t *testing.T) {

@@ -49,8 +49,14 @@ type Slot struct {
 
 	active, total, failed atomic.Int64 // active is across families (idle check on removal)
 	actF                  [2]atomic.Int64
-	bytesIn, bytesOut     [2]atomic.Int64
-	probing               [2]atomic.Bool
+
+	// Data usage counters, one per address family: bytesIn is what the network sent us (Rx),
+	// bytesOut what we sent to it (Tx). The data path adds to them with plain atomic adds —
+	// never a lock — so the pump, the relays and UDP flows all report without contention;
+	// Snapshot/DataUsage only load them.
+	bytesIn, bytesOut [2]atomic.Int64
+
+	probing [2]atomic.Bool
 
 	// Probe-based quality estimates (probe.go), written by the probe goroutines and read by
 	// the balancer's primary selection: plain atomics, no lock on that path. The loss rate is
@@ -87,6 +93,32 @@ func (sl *Slot) ip(f Family) net.IP {
 // atomically updates the handle too.
 func (sl *Slot) networkHandle() int64 { return sl.addr.Load().handle }
 
+// rx/tx are this interface's session data usage through mergify-net, both families summed:
+// Rx = bytes received from the network, Tx = bytes sent to it. Plain atomic loads, so a stats
+// poll never blocks the data path.
+func (sl *Slot) rx() int64 { return sl.bytesIn[Fam4].Load() + sl.bytesIn[Fam6].Load() }
+func (sl *Slot) tx() int64 { return sl.bytesOut[Fam4].Load() + sl.bytesOut[Fam6].Load() }
+
+// DataUsage is one interface's data usage counters, in bytes, over the scheduler's lifetime
+// (i.e. the current VPN session): Rx is what came in from that interface, Tx what was sent
+// through it. Both families are summed, the counters never reset while the engine runs.
+type DataUsage struct {
+	Name string
+	Rx   int64
+	Tx   int64
+}
+
+// DataUsage returns every interface's byte counters (Rx/Tx), read with plain atomic loads.
+func (s *Scheduler) DataUsage() []DataUsage {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	out := make([]DataUsage, 0, len(s.slots))
+	for _, sl := range s.slots {
+		out = append(out, DataUsage{Name: sl.Name, Rx: sl.rx(), Tx: sl.tx()})
+	}
+	return out
+}
+
 type SlotStats struct {
 	Name              string
 	IP                string
@@ -110,13 +142,15 @@ type SlotStats struct {
 // family (smoothed probe RTT) is the primary and takes every new flow while it has room;
 // the others only see traffic when it is saturated or lossy, and until the first probes
 // land the picking is the plain weighted least-active-flows below. Only new flows take the
-// lock.
+// lock. With forceMultiFlow on, that last spreading rule becomes the only one: every new
+// flow alternates across the healthy links instead of stacking on the fastest.
 type Scheduler struct {
-	mu      sync.Mutex
-	slots   []*Slot
-	primary [2]*Slot // the preferred NIC per family; guarded by mu
-	auto    bool
-	now     func() time.Time
+	mu             sync.Mutex
+	slots          []*Slot
+	primary        [2]*Slot // the preferred NIC per family; guarded by mu
+	auto           bool
+	forceMultiFlow bool // spread every new flow; guarded by mu
+	now            func() time.Time
 }
 
 func NewScheduler(nics []nics.Nic) *Scheduler {
@@ -129,6 +163,18 @@ func NewScheduler(nics []nics.Nic) *Scheduler {
 func (s *Scheduler) SetAuto(on bool) {
 	s.mu.Lock()
 	s.auto = on
+	s.mu.Unlock()
+}
+
+// SetForceMultiFlow makes every new flow spread across the healthy links of the pool — the
+// plain weighted least-active rule below — instead of stacking on the lowest-latency primary,
+// which is what the app's "Forcer le trafic multi-flux" switch asks for: two links then carry
+// the load together rather than the second one waiting for the first to saturate. The primary
+// is still elected (and reported in Snapshot), so the dashboard keeps showing which link is
+// the fastest, it just no longer decides where flows leave.
+func (s *Scheduler) SetForceMultiFlow(on bool) {
+	s.mu.Lock()
+	s.forceMultiFlow = on
 	s.mu.Unlock()
 }
 
@@ -337,13 +383,16 @@ func (s *Scheduler) AcquireFor(f Family, skip map[string]struct{}) *Slot {
 	// Stick to the lowest-latency NIC of the pool while it has room: the primary takes every
 	// new flow, and the others only see traffic once it is saturated or lossy. Before the
 	// first probes land (or when every measured link is lossy) this falls through to the
-	// plain weighted least-active spreading below.
+	// plain weighted least-active spreading below — and so does every flow when the scheduler
+	// runs in forced multi-flow mode, whatever the latencies are.
 	s.primary[f] = s.pickPrimaryLocked(f, pool)
-	if p := s.primary[f]; p != nil && !p.lossy(f) && !s.saturatedLocked(p, f) {
-		p.active.Add(1)
-		p.actF[f].Add(1)
-		p.total.Add(1)
-		return p
+	if !s.forceMultiFlow {
+		if p := s.primary[f]; p != nil && !p.lossy(f) && !s.saturatedLocked(p, f) {
+			p.active.Add(1)
+			p.actF[f].Add(1)
+			p.total.Add(1)
+			return p
+		}
 	}
 	// Spill-over: a lossy NIC (recent probe failures = packets being dropped) stops attracting
 	// flows unless nothing healthy is left in the pool.
@@ -493,8 +542,8 @@ func (s *Scheduler) Snapshot() []SlotStats {
 			Name: sl.Name, State: "-", State6: "-", Present: sl.present,
 			Weight: sl.weight[Fam4], Weight6: sl.weight[Fam6],
 			Active: sl.active.Load(), Total: sl.total.Load(), Failed: sl.failed.Load(),
-			BytesIn:  sl.bytesIn[Fam4].Load() + sl.bytesIn[Fam6].Load(),
-			BytesOut: sl.bytesOut[Fam4].Load() + sl.bytesOut[Fam6].Load(),
+			BytesIn:  sl.rx(),
+			BytesOut: sl.tx(),
 			RateIn:   sl.rateIn[Fam4] + sl.rateIn[Fam6], RateOut: sl.rateOut[Fam4] + sl.rateOut[Fam6],
 			LinkIn: sl.linkRateIn, LinkOut: sl.linkRateOut,
 			Peak: sl.peak[Fam4], Peak6: sl.peak[Fam6],

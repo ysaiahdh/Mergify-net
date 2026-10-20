@@ -25,6 +25,7 @@ import (
 	"net"
 	"os"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"mergify-net/internal/engine"
@@ -189,6 +190,7 @@ func StartVpn(tunFd int, bridge AndroidNetworkBridge) error {
 		return errors.New("mobile: no usable network: call AddManualNic and ApplyManualNics first")
 	}
 	sch := engine.NewScheduler(found)
+	sch.SetForceMultiFlow(forceMultiFlow.Load()) // the settings switch, see SetForceMultiFlow
 	bal := engine.NewBalancer(sch)
 	stop := make(chan struct{})
 	go sch.RunProbes(stop) // internet reachability per network, through the bridge
@@ -222,6 +224,23 @@ func StartVpn(tunFd int, bridge AndroidNetworkBridge) error {
 	return nil
 }
 
+// forceMultiFlow is the last value SetForceMultiFlow received. It is remembered rather than
+// only pushed to the running engine so a change made while the VPN is down still shapes the
+// next StartVpn.
+var forceMultiFlow atomic.Bool
+
+// SetForceMultiFlow forces the scheduler to spread every new flow across every healthy network
+// instead of stacking them on the lowest-latency one — the "Forcer le trafic multi-flux" switch
+// of the app's settings. Safe at any time: it reaches the running engine immediately and is
+// re-applied to the next one, so Kotlin can push it either when the switch moves or when the
+// VPN starts.
+func SetForceMultiFlow(enabled bool) {
+	forceMultiFlow.Store(enabled)
+	if s := currentService(); s != nil {
+		s.sch.SetForceMultiFlow(enabled)
+	}
+}
+
 // UpdateNetworks refreshes the Android Network handles of the registered networks without
 // interrupting the flows in progress: the first network registered with AddManualNic is taken
 // as Wi-Fi, the second as cellular (that order). The scheduler re-balances on the new handles
@@ -252,10 +271,59 @@ type stats struct {
 	Running bool               `json:"running"`
 	V6      string             `json:"v6"`
 	Nics    []engine.SlotStats `json:"nics"`
+
+	// Data usage counters (bytes) for the current session, through mergify-net only, split by
+	// transport: Wi-Fi first, cellular second — the order AddManualNic registers them in.
+	WifiRxBytes int64 `json:"wifi_rx_bytes"`
+	WifiTxBytes int64 `json:"wifi_tx_bytes"`
+	CellRxBytes int64 `json:"cell_rx_bytes"`
+	CellTxBytes int64 `json:"cell_tx_bytes"`
+	TotalBytes  int64 `json:"total_bytes"`
+}
+
+// dataUsage splits the engine's atomic per-interface counters into the two transports Android
+// registers: the first manual NIC is Wi-Fi, the second cellular (the same order UpdateNetworks
+// applies to the handles), with the names the app itself registers ("wifi"/"cell") as a
+// fallback. Each interface's Rx is what came in from it, Tx what was sent through it; both
+// families are summed and the totals live as long as the engine runs (one VPN session).
+func dataUsage() (wifiRx, wifiTx, cellRx, cellTx int64) {
+	manualMu.Lock()
+	var wifiName, cellName string
+	if len(manual) > 0 {
+		wifiName = manual[0].Name
+	}
+	if len(manual) > 1 {
+		cellName = manual[1].Name
+	}
+	manualMu.Unlock()
+
+	s := currentService()
+	if s == nil {
+		return
+	}
+	return splitUsage(s.sch.DataUsage(), wifiName, cellName)
+}
+
+// splitUsage attributes the per-interface counters to their transport: the registered names
+// win, the names the app itself uses ("wifi"/"cell") are the fallback. Anything else (a NIC
+// registered under another name) is dropped rather than silently billed to the wrong transport.
+func splitUsage(usages []engine.DataUsage, wifiName, cellName string) (wifiRx, wifiTx, cellRx, cellTx int64) {
+	for _, u := range usages {
+		switch {
+		case u.Name == wifiName || u.Name == "wifi":
+			wifiRx += u.Rx
+			wifiTx += u.Tx
+		case u.Name == cellName || u.Name == "cell":
+			cellRx += u.Rx
+			cellTx += u.Tx
+		}
+	}
+	return
 }
 
 // GetStatsJSON returns the current balancing state as JSON: one entry per network with its
-// addresses, probe state, active flows, rates and totals.
+// addresses, probe state, active flows, rates and totals, plus the session's data usage split
+// between Wi-Fi and cellular (Rx/Tx bytes, and their total).
 func GetStatsJSON() string {
 	st := stats{}
 	if s := currentService(); s != nil {
@@ -263,6 +331,8 @@ func GetStatsJSON() string {
 		st.V6 = s.bal.V6State()
 		st.Nics = s.sch.Snapshot()
 	}
+	st.WifiRxBytes, st.WifiTxBytes, st.CellRxBytes, st.CellTxBytes = dataUsage()
+	st.TotalBytes = st.WifiRxBytes + st.WifiTxBytes + st.CellRxBytes + st.CellTxBytes
 	b, err := json.Marshal(st)
 	if err != nil {
 		b, _ = json.Marshal(map[string]string{"error": err.Error()})
