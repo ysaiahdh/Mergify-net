@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Framework theme only: the UI itself is Jetpack Compose (Material3). -->
-    <style name="Theme.Mergify" parent="android:Theme.Material.Light.NoActionBar" />
+    <!-- Absolute-dark shell: the window is already #0A0A0C, so a cold start never
+         flashes white before Compose draws its own background. -->
+    <style name="Theme.Mergify" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">#0A0A0C</item>
+    </style>
 </resources>
