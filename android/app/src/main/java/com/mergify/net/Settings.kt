@@ -56,6 +56,17 @@ internal fun mobileLimitBytes(megabytes: Long): Long =
 internal fun mobileLimitMb(bytes: Long): Long =
     (bytes / 1_000_000L).coerceIn(MOBILE_LIMIT_MIN_MB, MOBILE_LIMIT_MAX_MB)
 
+/** A raw slider position in bytes → the budget it stands for: a whole notch, inside the scale. */
+internal fun snapToScale(position: Long): Long = mobileLimitBytes(mobileLimitMb(position))
+
+/**
+ * The same bounds as the Floats Material3's Slider wants for `valueRange`, in bytes. The scale
+ * stays the SI one [formatBytes] prints, so 20 000 Mo, the "20 Go" end label and the byte value
+ * all agree; the 198 notches then make every position a whole 100 Mo.
+ */
+internal val MOBILE_LIMIT_MIN_BYTES_FLOAT: Float = (MOBILE_LIMIT_MIN_MB * 1_000_000L).toFloat()
+internal val MOBILE_LIMIT_MAX_BYTES_FLOAT: Float = (MOBILE_LIMIT_MAX_MB * 1_000_000L).toFloat()
+
 /**
  * The settings' own `SharedPreferences` — distinct from `data_usage`, which holds counters rather
  * than choices, so neither file is ever rewritten by the other's writes.
@@ -66,8 +77,10 @@ class SettingsRepository(context: Context) {
         context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 
     fun load(): AppSettings = AppSettings(
-        // Clamped: a value written by an older or future scale still fits the current slider.
-        mobileLimitBytes = mobileLimitMb(
+        // Read as *bytes* and snapped back onto the scale: a raw stored number (older scale,
+        // hand edit, restored backup) still lands on a whole notch instead of shrinking the
+        // budget to a few kilobytes — which would trip the cellular cap on the first tick.
+        mobileLimitBytes = snapToScale(
             prefs.getLong(KEY_MOBILE_LIMIT, AppSettings.DEFAULT_MOBILE_LIMIT_BYTES),
         ),
         unlimitedMobileData = prefs.getBoolean(KEY_UNLIMITED, true),

@@ -54,6 +54,7 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -75,7 +76,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlin.math.roundToLong
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
@@ -157,6 +157,9 @@ class MainActivity : ComponentActivity() {
                         settings = settings,
                         onBack = { showSettings = false },
                         onChange = { update(it, false) },
+                        onLimitChange = { bytes ->
+                            update(settings.copy(mobileLimitBytes = bytes), false)
+                        },
                         onCommit = { update(settings, true) },
                     )
                 } else {
@@ -468,17 +471,33 @@ private fun GearIcon(modifier: Modifier = Modifier) {
 /**
  * *Paramètres*: the two choices the app persists ([SettingsRepository]) — a cellular budget the
  * stats loop of [VpnScreen] enforces, and the multi-flux policy pushed straight to Go. Same
- * surface, hairlines and monospaced labels as the dashboard. [onChange] fires on every move so
- * the read-out follows the thumb (and the engine follows the switches); [onCommit] fires when a
- * gesture ends, which is when the slider's value is written to disk.
+ * surface, hairlines and monospaced labels as the dashboard. [onLimitChange] fires on every move
+ * with the budget snapped to the scale; [onCommit] fires when a gesture ends, which is when that
+ * value is written to disk.
  */
 @Composable
 private fun SettingsScreen(
     settings: AppSettings,
     onBack: () -> Unit,
     onChange: (AppSettings) -> Unit,
+    onLimitChange: (Long) -> Unit,
     onCommit: () -> Unit,
 ) {
+    // The thumb follows the finger from this local copy: a drag never waits for the settings
+    // state (and the recomposition it schedules) to come back around before it can move. The
+    // persisted budget is only the key that re-seeds it, so re-entering the screen, toggling
+    // Illimité or a change made elsewhere all land on the right position again.
+    var sliderPosition by remember(settings.mobileLimitBytes) {
+        mutableFloatStateOf(settings.mobileLimitBytes.toFloat())
+    }
+
+    // The read-out tracks the thumb rather than the round trip through the parent's state.
+    val limitLabel = if (settings.unlimitedMobileData) {
+        settings.mobileLimitLabel
+    } else {
+        formatBytes(snapToScale(sliderPosition.toLong()))
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -530,7 +549,7 @@ private fun SettingsScreen(
                     fontFamily = Ui.Mono,
                 )
                 Text(
-                    text = settings.mobileLimitLabel,
+                    text = limitLabel,
                     color = Ui.TextPrimary,
                     fontSize = 15.sp,
                     fontFamily = Ui.Mono,
@@ -539,14 +558,14 @@ private fun SettingsScreen(
 
             Spacer(Modifier.height(16.dp))
             Slider(
-                value = mobileLimitMb(settings.mobileLimitBytes).toFloat(),
+                value = sliderPosition,
                 onValueChange = { position ->
-                    onChange(
-                        settings.copy(mobileLimitBytes = mobileLimitBytes(position.roundToLong())),
-                    )
+                    sliderPosition = position
+                    onLimitChange(snapToScale(position.toLong()))
                 },
                 onValueChangeFinished = onCommit,
                 enabled = !settings.unlimitedMobileData,
+                valueRange = MOBILE_LIMIT_MIN_BYTES_FLOAT..MOBILE_LIMIT_MAX_BYTES_FLOAT,
                 steps = MOBILE_LIMIT_SLIDER_STEPS,
                 modifier = Modifier.fillMaxWidth(),
                 colors = SliderDefaults.colors(

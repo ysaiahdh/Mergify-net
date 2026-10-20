@@ -22,6 +22,23 @@ class SettingsTest {
         assertEquals(MOBILE_LIMIT_MIN_MB * 1_000_000L, mobileLimitBytes(MOBILE_LIMIT_MIN_MB))
         assertEquals(MOBILE_LIMIT_MAX_MB * 1_000_000L, mobileLimitBytes(MOBILE_LIMIT_MAX_MB))
         assertEquals(1_500_000_000L, mobileLimitBytes(1_500L)) // 1500 Mo = 1.5 Go
+
+        // The Slider's valueRange is the same scale expressed in bytes (its Float bounds are
+        // exact: both ends are multiples of the Float ULP at that magnitude).
+        assertEquals(100_000_000f, MOBILE_LIMIT_MIN_BYTES_FLOAT, 0f)
+        assertEquals(20_000_000_000f, MOBILE_LIMIT_MAX_BYTES_FLOAT, 0f)
+    }
+
+    @Test
+    fun `a slider position lands on a whole notch of the scale`() {
+        assertEquals(500_000_000L, snapToScale(500_000_000L))
+        assertEquals(500_000_000L, snapToScale(500_999_999L)) // the thumb's drift rounds down
+        assertEquals(MOBILE_LIMIT_MIN_MB * 1_000_000L, snapToScale(0L))
+        assertEquals(MOBILE_LIMIT_MAX_MB * 1_000_000L, snapToScale(Long.MAX_VALUE))
+
+        // What load() relies on: a value read back from disk stays in *bytes*, whole notch and
+        // in range — it must never come back as a megabyte count written into a byte field.
+        assertEquals(1_000_000_000L, snapToScale(AppSettings.DEFAULT_MOBILE_LIMIT_BYTES))
     }
 
     @Test
