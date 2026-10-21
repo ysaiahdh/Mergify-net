@@ -4,14 +4,14 @@
 # createrepo_c and gpg, with the signing key already in the keyring. The Alpine and Arch
 # repositories are added to the same site by build-container-repos.sh.
 #
-#   GPG_KEY_ID=<fingerprint> REPO_BASE_URL=https://rohit267.github.io/mergify-net \
+#   GPG_KEY_ID=<fingerprint> REPO_BASE_URL=https://ysaiahdh.github.io/Mergify-net \
 #       scripts/build-repos.sh PKG_DIR OUT_DIR
 set -euo pipefail
 PKGS=$(realpath "${1:?usage: build-repos.sh PKG_DIR OUT_DIR}")
 mkdir -p "${2:?usage: build-repos.sh PKG_DIR OUT_DIR}"
 OUT=$(realpath "$2")
 KEY=${GPG_KEY_ID:?set GPG_KEY_ID to the signing key fingerprint}
-BASE=${REPO_BASE_URL:-https://rohit267.github.io/mergify-net}
+BASE=${REPO_BASE_URL:-https://ysaiahdh.github.io/Mergify-net}
 sign() { gpg --batch --yes --pinentry-mode loopback --local-user "$KEY" "$@"; }
 
 rm -rf "$OUT"/*
@@ -65,10 +65,10 @@ cat > "$OUT/index.html" <<HTML
 <title>mergify-net packages</title>
 <style>body{font:16px/1.5 system-ui,sans-serif;max-width:46rem;margin:2rem auto;padding:0 1rem}pre{background:#f3f4f6;padding:.8rem;overflow:auto;border-radius:6px}@media(prefers-color-scheme:dark){body{background:#0b1220;color:#e5e7eb}pre{background:#111827}a{color:#4ade80}}</style>
 <h1>mergify-net packages</h1>
-<p>Use all your internet connections at once. <a href="https://github.com/rohit267/mergify-net">Project on GitHub</a>.
+<p>Use all your internet connections at once. <a href="https://github.com/ysaiahdh/Mergify-net">Project on GitHub</a>.
 Signing key fingerprint: <code>$KEY</code>.</p>
 <h2>Any Linux or macOS: one line</h2>
-<pre>curl -fsSL https://raw.githubusercontent.com/rohit267/mergify-net/main/install.sh | sh</pre>
+<pre>curl -fsSL https://raw.githubusercontent.com/ysaiahdh/Mergify-net/main/install.sh | sh</pre>
 <p>It uses your package manager when it can. Or set it up by hand:</p>
 <h2>Debian, Ubuntu, Mint, Pop!_OS, Raspberry Pi OS</h2>
 <pre>curl -fsSL $BASE/apt/key.gpg | sudo tee /usr/share/keyrings/mergify-net.gpg &gt;/dev/null
@@ -90,7 +90,7 @@ sudo pacman -Sy mergify-net</pre>
 <pre>sudo wget -O /etc/apk/keys/mergify-net.rsa.pub $BASE/apk/mergify-net.rsa.pub
 echo $BASE/apk | sudo tee -a /etc/apk/repositories
 sudo apk add mergify-net</pre>
-<p>Everything else: the <code>.tar.gz</code> for your CPU on the <a href="https://github.com/rohit267/mergify-net/releases/latest">releases page</a>.</p>
+<p>Everything else: the <code>.tar.gz</code> for your CPU on the <a href="https://github.com/ysaiahdh/Mergify-net/releases/latest">releases page</a>.</p>
 HTML
 touch "$OUT/.nojekyll"
 echo "built apt and dnf repositories in $OUT"

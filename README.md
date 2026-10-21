@@ -16,7 +16,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/rohit267/mergify-net/releases/latest">Download</a> ·
+  <a href="https://github.com/ysaiahdh/Mergify-net/releases/latest">Download</a> ·
   <a href="#install">Install</a> ·
   <a href="#android">Android</a> ·
   <a href="#performance">Performance</a> ·
@@ -26,10 +26,10 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/rohit267/mergify-net/actions/workflows/ci.yml"><img src="https://github.com/rohit267/mergify-net/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-  <a href="https://github.com/rohit267/mergify-net/releases"><img src="https://img.shields.io/github/v/release/rohit267/mergify-net" alt="Latest release"></a>
-  <a href="https://github.com/rohit267/mergify-net/releases"><img src="https://img.shields.io/github/downloads/rohit267/mergify-net/total" alt="Downloads"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/github/license/rohit267/mergify-net" alt="MIT license"></a>
+  <a href="https://github.com/ysaiahdh/Mergify-net/actions/workflows/ci.yml"><img src="https://github.com/ysaiahdh/Mergify-net/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/ysaiahdh/Mergify-net/releases"><img src="https://img.shields.io/github/v/release/ysaiahdh/Mergify-net" alt="Latest release"></a>
+  <a href="https://github.com/ysaiahdh/Mergify-net/releases"><img src="https://img.shields.io/github/downloads/ysaiahdh/Mergify-net/total" alt="Downloads"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/ysaiahdh/Mergify-net" alt="MIT license"></a>
   <img src="https://img.shields.io/badge/platforms-Windows%20%7C%20macOS%20%7C%20Linux%20%7C%20Android-blue" alt="Windows, macOS, Linux and Android">
 </p>
 
@@ -70,13 +70,13 @@ spread over all your links.
 **macOS and Linux**: paste this into a terminal.
 
 ```
-curl -fsSL https://raw.githubusercontent.com/rohit267/mergify-net/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/ysaiahdh/Mergify-net/main/install.sh | sh
 ```
 
 **Windows**: paste this into PowerShell.
 
 ```
-irm https://raw.githubusercontent.com/rohit267/mergify-net/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/ysaiahdh/Mergify-net/main/install.ps1 | iex
 ```
 
 That's it: mergify-net is installed and its icon appears in the menu bar or tray. On Linux the script
@@ -90,65 +90,65 @@ mergify-net updates with the rest of your system. To start it at sign-in, tick *
 **Homebrew** (macOS):
 
 ```
-brew install rohit267/tap/mergify-net && sudo "$(brew --prefix)/bin/mergify-net" install && mergify-net tray
+brew install ysaiahdh/tap/mergify-net && sudo "$(brew --prefix)/bin/mergify-net" install && mergify-net tray
 ```
 
 **macOS without Homebrew**:
 
 ```
-curl -fsSL https://github.com/rohit267/mergify-net/releases/latest/download/mergify-net-macos-universal.tar.gz | tar -xz -C /tmp mergify-net && sudo /tmp/mergify-net install && mergify-net tray
+curl -fsSL https://github.com/ysaiahdh/Mergify-net/releases/latest/download/mergify-net-macos-universal.tar.gz | tar -xz -C /tmp mergify-net && sudo /tmp/mergify-net install && mergify-net tray
 ```
 
 **Debian, Ubuntu, Linux Mint, Pop!_OS, Raspberry Pi OS** (apt):
 
 ```
-curl -fsSL https://rohit267.github.io/mergify-net/apt/key.gpg | sudo tee /usr/share/keyrings/mergify-net.gpg >/dev/null
-echo "deb [signed-by=/usr/share/keyrings/mergify-net.gpg] https://rohit267.github.io/mergify-net/apt stable main" | sudo tee /etc/apt/sources.list.d/mergify-net.list
+curl -fsSL https://ysaiahdh.github.io/Mergify-net/apt/key.gpg | sudo tee /usr/share/keyrings/mergify-net.gpg >/dev/null
+echo "deb [signed-by=/usr/share/keyrings/mergify-net.gpg] https://ysaiahdh.github.io/Mergify-net/apt stable main" | sudo tee /etc/apt/sources.list.d/mergify-net.list
 sudo apt update && sudo apt install -y mergify-net
 ```
 
 **Fedora, RHEL, Rocky, Alma** (dnf):
 
 ```
-sudo curl -fsSL -o /etc/yum.repos.d/mergify-net.repo https://rohit267.github.io/mergify-net/rpm/mergify-net.repo && sudo dnf install -y mergify-net
+sudo curl -fsSL -o /etc/yum.repos.d/mergify-net.repo https://ysaiahdh.github.io/Mergify-net/rpm/mergify-net.repo && sudo dnf install -y mergify-net
 ```
 
 **openSUSE** (zypper):
 
 ```
-sudo zypper addrepo https://rohit267.github.io/mergify-net/rpm/mergify-net.repo && sudo zypper --gpg-auto-import-keys install -y mergify-net
+sudo zypper addrepo https://ysaiahdh.github.io/Mergify-net/rpm/mergify-net.repo && sudo zypper --gpg-auto-import-keys install -y mergify-net
 ```
 
 **Arch, Manjaro, EndeavourOS** (pacman):
 
 ```
-curl -fsSL https://rohit267.github.io/mergify-net/apt/key.asc | sudo pacman-key --add - && sudo pacman-key --lsign-key 0168C7AB77721656904811AE904F61E7F4F1C2A1
-printf '\n[mergify-net]\nSigLevel = Required\nServer = https://rohit267.github.io/mergify-net/arch/$arch\n' | sudo tee -a /etc/pacman.conf
+curl -fsSL https://ysaiahdh.github.io/Mergify-net/apt/key.asc | sudo pacman-key --add - && sudo pacman-key --lsign-key 0168C7AB77721656904811AE904F61E7F4F1C2A1
+printf '\n[mergify-net]\nSigLevel = Required\nServer = https://ysaiahdh.github.io/Mergify-net/arch/$arch\n' | sudo tee -a /etc/pacman.conf
 sudo pacman -Sy --noconfirm mergify-net
 ```
 
 **Alpine** (apk):
 
 ```
-sudo wget -O /etc/apk/keys/mergify-net.rsa.pub https://rohit267.github.io/mergify-net/apk/mergify-net.rsa.pub
-echo https://rohit267.github.io/mergify-net/apk | sudo tee -a /etc/apk/repositories && sudo apk add mergify-net
+sudo wget -O /etc/apk/keys/mergify-net.rsa.pub https://ysaiahdh.github.io/Mergify-net/apk/mergify-net.rsa.pub
+echo https://ysaiahdh.github.io/Mergify-net/apk | sudo tee -a /etc/apk/repositories && sudo apk add mergify-net
 ```
 
 **Homebrew** (Linux):
 
 ```
-brew install rohit267/tap/mergify-net && sudo setcap cap_net_admin,cap_net_raw+ep "$(readlink -f "$(brew --prefix)/bin/mergify-net")"
+brew install ysaiahdh/tap/mergify-net && sudo setcap cap_net_admin,cap_net_raw+ep "$(readlink -f "$(brew --prefix)/bin/mergify-net")"
 ```
 
 **Any other Linux** (any CPU):
 
 ```
-curl -fsSL https://github.com/rohit267/mergify-net/releases/latest/download/mergify-net-linux-$(uname -m).tar.gz | tar -xz -C /tmp mergify-net && sudo install -m 755 /tmp/mergify-net /usr/local/bin/ && sudo setcap cap_net_admin,cap_net_raw+ep /usr/local/bin/mergify-net
+curl -fsSL https://github.com/ysaiahdh/Mergify-net/releases/latest/download/mergify-net-linux-$(uname -m).tar.gz | tar -xz -C /tmp mergify-net && sudo install -m 755 /tmp/mergify-net /usr/local/bin/ && sudo setcap cap_net_admin,cap_net_raw+ep /usr/local/bin/mergify-net
 ```
 
-**Windows by hand**: download [mergify-net-setup.exe](https://github.com/rohit267/mergify-net/releases/latest/download/mergify-net-setup.exe)
+**Windows by hand**: download [mergify-net-setup.exe](https://github.com/ysaiahdh/Mergify-net/releases/latest/download/mergify-net-setup.exe)
 and run it. Windows may warn because the app is not signed yet: click *More info*, then *Run anyway*.
-There is also a [portable zip](https://github.com/rohit267/mergify-net/releases/latest/download/mergify-net-portable.zip).
+There is also a [portable zip](https://github.com/ysaiahdh/Mergify-net/releases/latest/download/mergify-net-portable.zip).
 
 Then start it with `mergify-net tray` (Linux, macOS) or from the Start menu (Windows).
 </details>
@@ -353,7 +353,7 @@ The app ID is `com.mergify.net`; to remove it from the device:
 installed (Homebrew, apt, dnf, zypper, apk, pacman or the download), with its repository and key.
 
 ```
-curl -fsSL https://raw.githubusercontent.com/rohit267/mergify-net/main/install.sh | sh -s -- uninstall
+curl -fsSL https://raw.githubusercontent.com/ysaiahdh/Mergify-net/main/install.sh | sh -s -- uninstall
 ```
 
 **Windows**: paste this into PowerShell, or use *Settings > Apps > Installed apps > mergify-net > Uninstall*.
@@ -374,7 +374,7 @@ Each block first stops the tray and turns off start at sign-in, then removes mer
 **Homebrew** (macOS):
 
 ```
-mergify-net quit; mergify-net autostart off; sudo mergify-net uninstall; brew uninstall mergify-net && brew untap rohit267/tap
+mergify-net quit; mergify-net autostart off; sudo mergify-net uninstall; brew uninstall mergify-net && brew untap ysaiahdh/tap
 ```
 
 **macOS without Homebrew**:
@@ -410,13 +410,13 @@ mergify-net quit; mergify-net autostart off; sudo pacman -R --noconfirm mergify-
 **Alpine** (apk):
 
 ```
-mergify-net quit; mergify-net autostart off; sudo apk del mergify-net && sudo sed -i '\#rohit267.github.io/mergify-net/apk#d' /etc/apk/repositories && sudo rm -f /etc/apk/keys/mergify-net.rsa.pub
+mergify-net quit; mergify-net autostart off; sudo apk del mergify-net && sudo sed -i '\#ysaiahdh.github.io/Mergify-net/apk#d' /etc/apk/repositories && sudo rm -f /etc/apk/keys/mergify-net.rsa.pub
 ```
 
 **Homebrew** (Linux):
 
 ```
-mergify-net quit; mergify-net autostart off; brew uninstall mergify-net && brew untap rohit267/tap
+mergify-net quit; mergify-net autostart off; brew uninstall mergify-net && brew untap ysaiahdh/tap
 ```
 
 **Any other Linux** (the download):
@@ -434,7 +434,7 @@ mergify-net quit; mergify-net autostart off; sudo rm -f /usr/local/bin/mergify-n
 
 ```nix
 # flake.nix
-inputs.mergify-net.url = "github:rohit267/mergify-net";
+inputs.mergify-net.url = "github:ysaiahdh/Mergify-net";
 
 # configuration.nix (with `inputs` passed via specialArgs)
 imports = [ inputs.mergify-net.nixosModules.default ];
@@ -444,7 +444,7 @@ programs.mergify-net = {
 };
 ```
 
-To try it without installing: `sudo nix run github:rohit267/mergify-net -- run`.
+To try it without installing: `sudo nix run github:ysaiahdh/Mergify-net -- run`.
 
 ## Add a second connection
 
@@ -623,7 +623,7 @@ More flags and details are in [docs/DEVELOPING.md](docs/DEVELOPING.md).
 
 ## Support
 
-mergify-net is free. If it saves you time, you can [buy me a coffee](https://buymeacoffee.com/rohit267) or [donate with PayPal](https://paypal.me/champdev). Thank you!
+mergify-net is free. If it saves you time, you can [buy me a coffee](https://buymeacoffee.com/ysaiahdh) or [donate with PayPal](https://paypal.me/champdev). Thank you!
 
 Building a college project? Host it on [DormHost](https://dormhost.dev/?utm_source=mergify-net&utm_medium=readme-support),
 also by me: Node.js, Python or Docker with a database, 30 days free.

@@ -6,7 +6,7 @@ Please **do not open a public issue** for a security problem.
 
 Report it privately instead:
 
-- Use **Report a vulnerability** on the repository's [Security tab](https://github.com/rohit267/mergify-net/security/advisories/new), or
+- Use **Report a vulnerability** on the repository's [Security tab](https://github.com/ysaiahdh/Mergify-net/security/advisories/new), or
 - email **ysaiah.ayzter@yahoo.com**.
 
 Please include what you found, the steps to reproduce it, and your OS and `mergify-net version`. I will
@@ -14,7 +14,7 @@ answer as soon as I can and credit you in the fix if you want.
 
 ## Supported versions
 
-Only the [latest release](https://github.com/rohit267/mergify-net/releases/latest) gets fixes.
+Only the [latest release](https://github.com/ysaiahdh/Mergify-net/releases/latest) gets fixes.
 
 ## What matters most
 

@@ -46,14 +46,14 @@ entry here before pushing a version tag.
 ## [0.3.1] - 2026-10-19
 
 ### Added
-- **One-line install.** `curl -fsSL https://raw.githubusercontent.com/rohit267/mergify-net/main/install.sh | sh` on
+- **One-line install.** `curl -fsSL https://raw.githubusercontent.com/ysaiahdh/Mergify-net/main/install.sh | sh` on
   macOS and Linux (it uses Homebrew, apt, dnf, zypper, apk or pacman when it can, the release tarball
-  otherwise, and starts the tray), and `irm https://raw.githubusercontent.com/rohit267/mergify-net/main/install.ps1 | iex`
+  otherwise, and starts the tray), and `irm https://raw.githubusercontent.com/ysaiahdh/Mergify-net/main/install.ps1 | iex`
   in PowerShell on Windows.
 - Releases also carry the downloads under names without the version (`mergify-net-setup.exe`,
   `mergify-net-macos-universal.tar.gz`, `mergify-net-linux-$(uname -m).tar.gz`), so
   `releases/latest/download/...` links always give the newest one.
-- **One-line uninstall** on macOS and Linux: `curl -fsSL https://raw.githubusercontent.com/rohit267/mergify-net/main/install.sh | sh -s -- uninstall`
+- **One-line uninstall** on macOS and Linux: `curl -fsSL https://raw.githubusercontent.com/ysaiahdh/Mergify-net/main/install.sh | sh -s -- uninstall`
   stops mergify-net and removes it the way it was installed, with its repository and key. The README has the
   Windows line and every manual way.
 

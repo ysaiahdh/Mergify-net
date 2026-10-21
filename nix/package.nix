@@ -33,7 +33,7 @@
 
   meta = {
     description = "Use all your network adapters at once: balances connections across Wi-Fi, Ethernet and tethers";
-    homepage = "https://github.com/rohit267/mergify-net";
+    homepage = "https://github.com/ysaiahdh/Mergify-net";
     license = lib.licenses.mit;
     mainProgram = "mergify-net";
     platforms = lib.platforms.linux ++ lib.platforms.windows;
