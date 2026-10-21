@@ -1,7 +1,7 @@
 #!/bin/sh
 # Installs mergify-net on macOS or Linux, the easiest way the machine allows:
 #
-#   curl -fsSL https://raw.githubusercontent.com/rohit267/mergify-net/main/install.sh | sh
+#   curl -fsSL https://raw.githubusercontent.com/ysaiahdh/Mergify-net/main/install.sh | sh
 #
 # Linux: the system's package manager (apt, dnf, yum, zypper, apk, pacman) from mergify-net's signed
 # repositories, so it updates with everything else; otherwise Homebrew; otherwise the release tarball.
@@ -11,11 +11,11 @@
 #
 # Uninstall, however it was installed:
 #
-#   curl -fsSL https://raw.githubusercontent.com/rohit267/mergify-net/main/install.sh | sh -s -- uninstall
+#   curl -fsSL https://raw.githubusercontent.com/ysaiahdh/Mergify-net/main/install.sh | sh -s -- uninstall
 set -eu
 
-REPO=https://github.com/rohit267/mergify-net
-BASE=https://rohit267.github.io/mergify-net
+REPO=https://github.com/ysaiahdh/Mergify-net
+BASE=https://ysaiahdh.github.io/Mergify-net
 FPR=0168C7AB77721656904811AE904F61E7F4F1C2A1
 
 say() { printf '\033[1;32m==>\033[0m %s\n' "$*"; }
@@ -62,7 +62,7 @@ tarball() {
 # ---- Homebrew (as the user: brew refuses root)
 homebrew() {
     say "Installing with Homebrew"
-    brew install rohit267/tap/mergify-net
+    brew install ysaiahdh/tap/mergify-net
     bin=$(brew --prefix)/bin/mergify-net
     if [ "$(uname -s)" = Darwin ]; then
         $SUDO "$bin" install
@@ -129,7 +129,7 @@ uninstall() {
         if have brew && brew list --formula mergify-net >/dev/null 2>&1; then
             say "Removing with Homebrew"
             brew uninstall mergify-net
-            brew untap rohit267/tap >/dev/null 2>&1 || true
+            brew untap ysaiahdh/tap >/dev/null 2>&1 || true
         fi
         $SUDO rm -rf /var/run/mergify-net "$HOME/Library/Logs/mergify-net.log"
     else
@@ -162,7 +162,7 @@ uninstall() {
         if have brew && brew list --formula mergify-net >/dev/null 2>&1; then
             say "Removing with Homebrew"
             brew uninstall mergify-net
-            brew untap rohit267/tap >/dev/null 2>&1 || true
+            brew untap ysaiahdh/tap >/dev/null 2>&1 || true
         fi
         $SUDO rm -f /usr/local/bin/mergify-net   # the tarball
         rm -rf "${XDG_CACHE_HOME:-$HOME/.cache}/mergify-net"
@@ -198,7 +198,7 @@ elif [ "$(uname -s)" = Linux ]; then
     elif have brew && [ "$(id -u)" != 0 ]; then homebrew
     else tarball; fi
 else
-    die "this script is for macOS and Linux; on Windows run in PowerShell: irm https://raw.githubusercontent.com/rohit267/mergify-net/main/install.ps1 | iex"
+    die "this script is for macOS and Linux; on Windows run in PowerShell: irm https://raw.githubusercontent.com/ysaiahdh/Mergify-net/main/install.ps1 | iex"
 fi
 
 have mergify-net || PATH=$PATH:/usr/local/bin

@@ -4,7 +4,7 @@ Thanks for helping. Bug reports, ideas and pull requests are all welcome.
 
 ## Reporting a bug
 
-Open an [issue](https://github.com/rohit267/mergify-net/issues) and include:
+Open an [issue](https://github.com/ysaiahdh/Mergify-net/issues) and include:
 
 - your OS and version, and `mergify-net version`
 - the output of `mergify-net list` and `mergify-net status`

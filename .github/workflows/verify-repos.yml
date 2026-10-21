@@ -10,7 +10,7 @@ on:
     paths: [install.sh, install.ps1, .github/workflows/verify-repos.yml]
 
 env:
-  BASE: https://rohit267.github.io/mergify-net
+  BASE: https://ysaiahdh.github.io/Mergify-net
   FPR: 0168C7AB77721656904811AE904F61E7F4F1C2A1
 
 jobs:
