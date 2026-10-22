@@ -128,8 +128,8 @@ jobs:
           ls dist | wc -l
       - name: Validate the desktop and AppStream files
         run: |
-          desktop-file-validate packaging/io.github.rohit267.mergify-net.desktop
-          appstreamcli validate --no-net packaging/io.github.rohit267.mergify-net.metainfo.xml
+          desktop-file-validate packaging/io.github.ysaiahdh.mergify-net.desktop
+          appstreamcli validate --no-net packaging/io.github.ysaiahdh.mergify-net.metainfo.xml
       - name: Build signed repositories with throwaway keys
         run: |
           export GNUPGHOME=$(mktemp -d)
@@ -152,7 +152,7 @@ jobs:
           sudo apt-get install -y mergify-net
           getcap /usr/bin/mergify-net | tee /dev/stderr | grep -q cap_net_admin
           mergify-net version
-          desktop-file-validate /usr/share/applications/io.github.rohit267.mergify-net.desktop
+          desktop-file-validate /usr/share/applications/io.github.ysaiahdh.mergify-net.desktop
           test -f /usr/share/icons/hicolor/256x256/apps/mergify-net.png
       - name: apt install mergify-net (Debian)
         run: |

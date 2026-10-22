@@ -19,10 +19,10 @@ contents:
     dst: /usr/bin/mergify-net
     file_info:
       mode: 0755
-  - src: packaging/io.github.rohit267.mergify-net.desktop
-    dst: /usr/share/applications/io.github.rohit267.mergify-net.desktop
-  - src: packaging/io.github.rohit267.mergify-net.metainfo.xml
-    dst: /usr/share/metainfo/io.github.rohit267.mergify-net.metainfo.xml
+  - src: packaging/io.github.ysaiahdh.mergify-net.desktop
+    dst: /usr/share/applications/io.github.ysaiahdh.mergify-net.desktop
+  - src: packaging/io.github.ysaiahdh.mergify-net.metainfo.xml
+    dst: /usr/share/metainfo/io.github.ysaiahdh.mergify-net.metainfo.xml
   - src: packaging/icons/hicolor
     dst: /usr/share/icons/hicolor
     type: tree

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
-  <id>io.github.rohit267.mergify-net</id>
+  <id>io.github.ysaiahdh.mergify-net</id>
   <name>mergify-net</name>
   <summary>Use all your internet connections at the same time</summary>
   <metadata_license>CC0-1.0</metadata_license>
@@ -27,7 +27,7 @@
       extension, which Ubuntu already includes.
     </p>
   </description>
-  <launchable type="desktop-id">io.github.rohit267.mergify-net.desktop</launchable>
+  <launchable type="desktop-id">io.github.ysaiahdh.mergify-net.desktop</launchable>
   <provides>
     <binary>mergify-net</binary>
   </provides>
